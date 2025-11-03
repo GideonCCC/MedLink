@@ -1,0 +1,266 @@
+.doctors-list-page {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+/* Top Header with Brand and Close */
+.doctors-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.page-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #00b894;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #666;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-button:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.doctors-page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1.5fr auto 1.5fr;
+}
+
+.doctors-page-container > * {
+  grid-column: 2;
+}
+
+.page-title {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 1rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+/* Date Navigation Bar */
+.date-navigation-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+  width: 700px;
+}
+
+.date-nav-button {
+  background: #00b894;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-nav-button:hover:not(:disabled) {
+  background: #00a085;
+  transform: scale(1.1);
+}
+
+.date-nav-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.date-display-bar {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  min-width: 300px;
+  text-align: center;
+  flex: 1;
+}
+
+.error-banner {
+  background-color: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 2rem;
+}
+
+.loading,
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+/* Doctors Schedule List */
+.doctors-schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.doctor-schedule-card {
+  background: white;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all 0.2s;
+}
+
+.doctor-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.doctor-avatar-large {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #f0fdfb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.doctor-details {
+  flex: 1;
+}
+
+.doctor-name-card {
+  font-size: 1.5rem;
+  color: #333;
+  margin: 0;
+  font-weight: 700;
+}
+
+.doctor-specialty-card {
+  color: #666;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.doctor-time-slots {
+  width: 100%;
+}
+
+.slots-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 700px;
+}
+
+.time-slot-button {
+  padding: 0.75rem 0.875rem;
+  border: none;
+  border-radius: 25px;
+  background: #f5f5f5;
+  color: #000000;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 0 0 calc(25% - 0.375rem);
+  min-width: 0;
+}
+
+.time-slot-button:hover {
+  background: #e8e8e8;
+}
+
+.time-text {
+  color: #000000;
+}
+
+.est-text {
+  color: #999;
+  font-size: 0.75rem;
+}
+
+.no-slots {
+  color: #999;
+  font-style: italic;
+  padding: 1rem 0;
+}
+
+@media (max-width: 768px) {
+  .doctors-page-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .page-brand {
+    font-size: 1.2rem;
+  }
+
+  .doctors-page-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .doctor-schedule-card {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .doctor-profile {
+    min-width: auto;
+  }
+
+  .date-navigation-bar {
+    gap: 1rem;
+    padding: 0.75rem 0;
+  }
+
+  .date-nav-button {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .date-display-bar {
+    font-size: 1rem;
+    min-width: 200px;
+  }
+}

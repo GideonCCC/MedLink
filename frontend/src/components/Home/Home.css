@@ -1,0 +1,478 @@
+.home-page {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+/* Banner Section - Top third of screen */
+.banner-section {
+  width: 100%;
+  height: 20vh;
+  min-height: 180px;
+  max-height: 250px;
+  position: relative;
+  overflow: visible;
+  margin-bottom: 100px;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:%2300b894;stop-opacity:0.9" /><stop offset="100%" style="stop-color:%2300a085;stop-opacity:0.7" /></linearGradient></defs><rect width="1200" height="400" fill="url(%23grad)"/><path d="M0,200 Q300,150 600,200 T1200,200 L1200,400 L0,400 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-overlay {
+  text-align: center;
+  color: white;
+  z-index: 1;
+}
+
+.banner-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.banner-tagline {
+  font-size: 1.2rem;
+  opacity: 0.95;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Main Content Wrapper */
+.main-content-wrapper {
+  position: relative;
+  padding: 0;
+  margin-top: -100px;
+}
+
+.content-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 5.5fr 4.5fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Left Side - Clinic Information */
+.clinic-info-section {
+  grid-column: 2;
+  padding-right: 2rem;
+}
+
+.clinic-header h2 {
+  font-size: 2.5rem;
+  color: #00b894;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  font-weight: 700;
+}
+
+.clinic-details {
+  margin-bottom: 2.5rem;
+}
+
+.info-item {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  align-items: flex-start;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #333;
+  min-width: 100px;
+}
+
+.info-value {
+  color: #666;
+  line-height: 1.6;
+}
+
+.online-services {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.online-services h3 {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.online-services ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.online-services li {
+  padding: 0.5rem 0;
+  color: #666;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.online-services li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #00b894;
+  font-weight: bold;
+}
+
+.clinic-tagline {
+  padding: 1.5rem;
+  background: #f0fdfb;
+  border-left: 4px solid #00b894;
+  border-radius: 4px;
+}
+
+.clinic-tagline p {
+  color: #666;
+  line-height: 1.8;
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Right Side - Fixed Booking Box */
+.booking-box-container {
+  grid-column: 3;
+  position: sticky;
+  top: 100px;
+  align-self: start;
+  z-index: 10;
+}
+
+.booking-box {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  margin-top: -30px;
+}
+
+.booking-title {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.booking-search-form {
+  margin-bottom: 1.25rem;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #00b894;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.5rem 0.625rem;
+  border: none;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.search-icon-button {
+  padding: 0.5rem 0.625rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.search-icon-button:hover {
+  color: #00b894;
+}
+
+.common-reasons {
+  margin-top: 1.25rem;
+}
+
+.reasons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.reason-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border: none;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.reason-item:hover {
+  background: #f0fdfb;
+  transform: translateX(4px);
+}
+
+.reason-icon-wrapper {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0fdfb;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.reason-icon {
+  font-size: 1.1rem;
+  filter: hue-rotate(120deg) saturate(1.2) brightness(1);
+}
+
+.reason-name {
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .content-container {
+    max-width: 1200px;
+    grid-template-columns: 1fr 5.5fr 4.5fr 1fr;
+    padding: 0 1rem 3rem 1rem;
+  }
+}
+
+@media (max-width: 1200px) {
+  .content-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 0 1.5rem 3rem 1.5rem;
+  }
+
+  .clinic-info-section {
+    grid-column: 1;
+    padding-right: 0;
+  }
+
+  .booking-box-container {
+    grid-column: 1;
+    position: relative;
+    top: 0;
+    margin-top: 0;
+  }
+
+  .banner-section {
+    margin-bottom: 0;
+  }
+
+  .main-content-wrapper {
+    margin-top: 0;
+  }
+}
+
+/* Search Modal */
+.search-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.search-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 2.5rem;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #666;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.modal-title {
+  font-size: 1.75rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.modal-search-form {
+  margin-bottom: 2rem;
+}
+
+.modal-search-wrapper {
+  display: flex;
+  align-items: center;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.modal-search-wrapper:focus-within {
+  border-color: #00b894;
+}
+
+.modal-search-input {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  border: none;
+  font-size: 1rem;
+  outline: none;
+}
+
+.modal-search-button {
+  padding: 0.875rem 1rem;
+  background: #00b894;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.modal-search-button:hover {
+  background: #00a085;
+}
+
+.specialties-dropdown {
+  margin-top: 1.5rem;
+}
+
+.specialties-label {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.specialties-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.specialty-item {
+  padding: 0.875rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.specialty-item:hover {
+  border-color: #00b894;
+  background: #f0fdfb;
+  transform: translateX(4px);
+}
+
+.no-specialties {
+  text-align: center;
+  color: #999;
+  padding: 2rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .banner-title {
+    font-size: 2.5rem;
+  }
+
+  .banner-tagline {
+    font-size: 1.2rem;
+  }
+
+  .content-container {
+    padding: 2rem 1rem;
+  }
+
+  .clinic-header h2 {
+    font-size: 2rem;
+  }
+
+  .search-modal {
+    padding: 2rem 1.5rem;
+    max-width: 100%;
+    margin: 1rem;
+  }
+
+  .modal-title {
+    font-size: 1.5rem;
+  }
+}

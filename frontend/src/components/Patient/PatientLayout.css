@@ -1,0 +1,157 @@
+.patient-layout {
+  min-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Brand name at top left */
+.patient-brand {
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 1rem 1.5rem;
+  z-index: 1;
+  background: #f5f5f5;
+}
+
+.brand-link {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #00b894;
+  text-decoration: none;
+}
+
+.brand-link:hover {
+  color: #00a085;
+}
+
+/* Main content grid: 1, 4, 6, 1 */
+.patient-content-grid {
+  margin-top: 4rem;
+  min-height: calc(100vh - 4rem);
+  position: relative;
+}
+
+.patient-left-margin,
+.patient-right-margin {
+  /* Empty margin columns */
+}
+
+/* Left sidebar menu - 4 units */
+.patient-sidebar {
+  padding: 2rem 1.5rem;
+  background: white;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: fixed;
+  left: 8.333%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 33.333%;
+  height: fit-content;
+  max-height: calc(100vh - 4rem);
+  overflow: visible;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+/* Calculate fixed position based on grid: 1, 4, 6, 1 = 12 units total */
+/* Left margin = 1/12 (8.333%), Sidebar = 4/12 (33.333%), Content = 6/12 (50%), Right margin = 1/12 (8.333%) */
+/* So sidebar starts at 8.333% and is 33.333% wide */
+
+.sidebar-welcome {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-nav-item {
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  color: #666;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sidebar-nav-item:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.sidebar-nav-item.active {
+  background: #00b894;
+  color: white;
+}
+
+.sidebar-nav-item.active:hover {
+  background: #00a085;
+}
+
+.sidebar-logout {
+  margin-top: auto;
+  color: #c33;
+}
+
+.sidebar-logout:hover {
+  background: #fee;
+  color: #a00;
+}
+
+/* Right content area - 6 units */
+.patient-content {
+  padding: 2rem 2rem;
+  background: transparent;
+  overflow-y: auto;
+  position: fixed;
+  left: 41.666%;
+  right: 8.333%;
+  top: 4rem;
+  bottom: 0;
+  width: auto;
+  z-index: 1;
+}
+
+/* Unified page title style */
+.patient-content h1,
+.patient-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 1.5rem 0;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .patient-content-grid {
+    grid-template-columns: 1fr;
+    margin-top: 3.5rem;
+  }
+
+  .patient-left-margin,
+  .patient-sidebar {
+    display: none;
+  }
+
+  .patient-content {
+    padding: 1rem;
+  }
+}
+
