@@ -21,9 +21,10 @@ router.post('/', requireAuth, requireRole('patient'), async (req, res) => {
     const start = new Date(startDateTime);
     const end = new Date(endDateTime);
 
-    // Check if time is in the future
-    if (start < new Date()) {
-      return res.status(400).json({ error: 'Cannot book appointments in the past' });
+    // Check if time is at least 1 hour from now
+    const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000);
+    if (start < oneHourFromNow) {
+      return res.status(400).json({ error: 'Appointments must be booked at least 1 hour in advance' });
     }
 
     // Check if doctor exists
@@ -219,11 +220,12 @@ router.put('/:id', requireAuth, requireRole('patient'), async (req, res) => {
       const start = startDateTime ? new Date(startDateTime) : appointment.startDateTime;
       const end = endDateTime ? new Date(endDateTime) : appointment.endDateTime;
 
-      // Check if time is in the future
-      if (start < new Date()) {
+      // Check if time is at least 1 hour from now
+      const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000);
+      if (start < oneHourFromNow) {
         return res
           .status(400)
-          .json({ error: 'Cannot reschedule to a past time' });
+          .json({ error: 'Appointments must be rescheduled to at least 1 hour in advance' });
       }
 
       // Check for conflicts
