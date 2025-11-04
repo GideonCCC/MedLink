@@ -6,7 +6,6 @@ A lightweight scheduling application where patients can book, view, reschedule, 
 
 - Shaobo (Ben) Chen
 - Chirag Suthar
-- John Alexis Guerra Gomez
 
 ## Class Link
 
