@@ -76,9 +76,9 @@ router.get('/:id/availability', async (req, res) => {
       return res.status(404).json({ error: 'Doctor not found' });
     }
 
-    // Parse the date and get start/end of day
-    const selectedDate = new Date(date);
-    selectedDate.setHours(0, 0, 0, 0);
+    // Parse the date and get start/end of day in local time
+    const [year, month, day] = date.split('-').map(Number);
+    const selectedDate = new Date(year, month - 1, day, 0, 0, 0, 0);
     const nextDay = new Date(selectedDate);
     nextDay.setDate(nextDay.getDate() + 1);
 
@@ -96,16 +96,17 @@ router.get('/:id/availability', async (req, res) => {
     const slots = [];
     const startHour = 8;
     const endHour = 18;
-
+    const now = new Date();
+    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+    
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
-        const slotStart = new Date(selectedDate);
-        slotStart.setHours(hour, minute, 0, 0);
+        const slotStart = new Date(year, month - 1, day, hour, minute, 0, 0);
         const slotEnd = new Date(slotStart);
         slotEnd.setMinutes(slotEnd.getMinutes() + 30);
 
         // Skip if slot is less than 1 hour from now
-        const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000);
+        // This allows same-day appointments as long as they're at least 1 hour ahead
         if (slotStart < oneHourFromNow) {
           continue;
         }

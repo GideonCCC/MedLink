@@ -178,7 +178,7 @@ function AppointmentForm() {
                 value={formData.startDateTime}
                 onChange={handleChange}
                 required
-                min={new Date().toISOString().slice(0, 16)}
+                min={new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16)}
               />
             </div>
 
