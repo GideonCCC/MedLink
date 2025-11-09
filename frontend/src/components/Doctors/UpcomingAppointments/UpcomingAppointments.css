@@ -12,3 +12,15 @@
   max-height: 80vh;
   overflow: scroll;
 }
+
+.current-appointment {
+  margin-bottom: 1rem;
+}
+
+.current-appointment h1 {
+  margin-bottom: 1rem;
+}
+
+.no-show-actions {
+  justify-content: flex-start;
+}

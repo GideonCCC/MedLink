@@ -36,7 +36,7 @@ function AppointmentForm() {
       const doctorId = searchParams.get('doctorId');
       const startDateTime = searchParams.get('startDateTime');
       const endDateTime = searchParams.get('endDateTime');
-      
+
       if (doctorId && startDateTime && endDateTime) {
         setFormData({
           doctorId,
@@ -46,9 +46,9 @@ function AppointmentForm() {
         });
       }
     }
-  }, [id, isEdit, searchParams]);
+  }, [id, isEdit, searchParams, loadAppointment, loadDoctors]);
 
-  async function loadDoctors() {
+  const loadDoctors = useCallback(async () => {
     try {
       const data = await apiClient('/api/doctors');
       setDoctors(data);
@@ -64,9 +64,9 @@ function AppointmentForm() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [isEdit, searchParams]);
 
-  async function loadAppointment() {
+  const loadAppointment = useCallback(async () => {
     try {
       const data = await apiClient(`/api/appointments`);
       const appointments = data.appointments || [];
@@ -84,7 +84,7 @@ function AppointmentForm() {
     } catch (err) {
       setError(err.message);
     }
-  }
+  }, [id]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -104,11 +104,13 @@ function AppointmentForm() {
 
   const loadDoctorSlots = useCallback(async () => {
     if (!formData.doctorId) return;
-    
+
     try {
       setSlotsLoading(true);
       const dateStr = selectedDate.toISOString().split('T')[0];
-      const data = await apiClient(`/api/doctors/${formData.doctorId}/availability?date=${dateStr}`);
+      const data = await apiClient(
+        `/api/doctors/${formData.doctorId}/availability?date=${dateStr}`
+      );
       setSlots(data.slots || []);
     } catch (err) {
       setError(err.message);
@@ -132,16 +134,16 @@ function AppointmentForm() {
 
   function handleSlotSelect(slot) {
     if (!slot.available) return;
-    
+
     const start = new Date(slot.start);
     const end = new Date(slot.end);
-    
+
     setFormData((prev) => ({
       ...prev,
       startDateTime: start.toISOString().slice(0, 16),
       endDateTime: end.toISOString().slice(0, 16),
     }));
-    
+
     setShowTimeSlotModal(false);
   }
 
@@ -284,7 +286,11 @@ function AppointmentForm() {
                     <>
                       <span className="time-label">Current:</span>
                       <span className="time-value">
-                        {formatDateTime(formData.startDateTime)} - {formatDateTime(formData.endDateTime).split(' ').slice(-2).join(' ')}
+                        {formatDateTime(formData.startDateTime)} -{' '}
+                        {formatDateTime(formData.endDateTime)
+                          .split(' ')
+                          .slice(-2)
+                          .join(' ')}
                       </span>
                     </>
                   ) : (
@@ -311,7 +317,9 @@ function AppointmentForm() {
                   value={formData.startDateTime}
                   onChange={handleChange}
                   required
-                  min={new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16)}
+                  min={new Date(Date.now() + 60 * 60 * 1000)
+                    .toISOString()
+                    .slice(0, 16)}
                 />
               </div>
 
@@ -324,7 +332,10 @@ function AppointmentForm() {
                   value={formData.endDateTime}
                   onChange={handleChange}
                   required
-                  min={formData.startDateTime || new Date().toISOString().slice(0, 16)}
+                  min={
+                    formData.startDateTime ||
+                    new Date().toISOString().slice(0, 16)
+                  }
                 />
               </div>
             </div>
@@ -350,8 +361,16 @@ function AppointmentForm() {
             >
               Cancel
             </button>
-            <button type="submit" className="submit-button" disabled={submitting}>
-              {submitting ? 'Saving...' : isEdit ? 'Update Appointment' : 'Book Appointment'}
+            <button
+              type="submit"
+              className="submit-button"
+              disabled={submitting}
+            >
+              {submitting
+                ? 'Saving...'
+                : isEdit
+                  ? 'Update Appointment'
+                  : 'Book Appointment'}
             </button>
           </div>
         </form>
@@ -400,7 +419,10 @@ function TimeSlotModal({
 
   return createPortal(
     <div className="time-slot-modal-overlay" onClick={onClose}>
-      <div className="time-slot-modal-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="time-slot-modal-content"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button className="time-slot-modal-close" onClick={onClose}>
           ×
         </button>
@@ -457,7 +479,9 @@ function TimeSlotModal({
                   disabled={!slot.available}
                 >
                   {slot.time}
-                  {!slot.available && <span className="booked-label">Booked</span>}
+                  {!slot.available && (
+                    <span className="booked-label">Booked</span>
+                  )}
                 </button>
               ))
             )}
@@ -484,4 +508,3 @@ TimeSlotModal.propTypes = {
 };
 
 export default AppointmentForm;
-

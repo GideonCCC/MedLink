@@ -54,18 +54,6 @@ function PatientDashboard() {
     }
   }
 
-  function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  }
-
   return (
     <div className="patient-dashboard">
       {error && <div className="error-banner">{error}</div>}
@@ -79,7 +67,7 @@ function PatientDashboard() {
           <div className="loading">Loading appointments...</div>
         ) : upcomingAppointments.length === 0 ? (
           <div className="empty-state">
-            <p>You don't have any upcoming appointments.</p>
+            <p>You don&apos;t have any upcoming appointments.</p>
             <Link to="/patient/appointments/new" className="link-button">
               Book your first appointment
             </Link>
@@ -124,10 +112,14 @@ function AppointmentCard({ appointment, onCancel }) {
     <div className="appointment-card">
       <div className="appointment-header">
         <h3>{appointment.doctorName}</h3>
-        <span className="status-badge status-upcoming">{appointment.status}</span>
+        <span className="status-badge status-upcoming">
+          {appointment.status}
+        </span>
       </div>
       <div className="appointment-details">
-        <p className="appointment-date">{formatDate(appointment.startDateTime)}</p>
+        <p className="appointment-date">
+          {formatDate(appointment.startDateTime)}
+        </p>
         {appointment.reason && (
           <p className="appointment-reason">{appointment.reason}</p>
         )}
@@ -184,7 +176,10 @@ function CancelConfirmModal({ onConfirm, onDismiss }) {
     <div className="modal-overlay" onClick={onDismiss}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h3>Cancel Appointment?</h3>
-        <p>Are you sure you want to cancel this appointment? This action cannot be undone.</p>
+        <p>
+          Are you sure you want to cancel this appointment? This action cannot
+          be undone.
+        </p>
         <div className="modal-actions">
           <button onClick={onDismiss} className="modal-cancel-button">
             Keep
@@ -205,4 +200,3 @@ CancelConfirmModal.propTypes = {
 };
 
 export default PatientDashboard;
-

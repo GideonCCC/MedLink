@@ -132,6 +132,15 @@
   cursor: pointer;
 }
 
+.no-show-button {
+  background: #fff3cd;
+  color: #856404;
+  border: none;
+  border-radius: 80px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
 .cancel-confirmation-modal-confirm-button:hover {
   background: #c82333;
 }

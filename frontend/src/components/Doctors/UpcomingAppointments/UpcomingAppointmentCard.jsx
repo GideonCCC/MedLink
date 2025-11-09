@@ -14,48 +14,100 @@ function formatDate(dateString) {
   });
 }
 
-export default function UpcomingAppointmentCard({ appointment, onCancel }) {
+export default function UpcomingAppointmentCard({
+  appointment,
+  onCancel,
+  type = 'upcoming',
+}) {
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [cancelConfirmTimeout, setCancelConfirmTimeout] = useState(false);
 
-  return (
-    <div className="upcoming-appointment-card">
-      {cancelConfirm && (
+  const ConfirmCancellationModal = () => {
+    return (
+      <div className={`cancel-modal-bg ${cancelConfirmTimeout ? '' : 'hide'}`}>
         <div
-          className={`cancel-modal-bg ${cancelConfirmTimeout ? '' : 'hide'}`}
+          className={`cancel-confirmation-modal ${cancelConfirmTimeout ? '' : 'hide'}`}
         >
-          <div
-            className={`cancel-confirmation-modal ${cancelConfirmTimeout ? '' : 'hide'}`}
-          >
-            <h3 className="cancel-confirmation-modal-title">
-              Cancel Appointment?
-            </h3>
-            <p className="cancel-confirmation-modal-description">
-              Are you sure you want to cancel this appointment?
-            </p>
-            <p className="cancel-confirmation-modal-description-warning">
-              This action cannot be undone.
-            </p>
-            <div className="cancel-confirmation-modal-actions">
-              <button
-                className="cancel-confirmation-modal-keep-button"
-                onClick={() => {
-                  setCancelConfirmTimeout(false);
-                  setTimeout(() => setCancelConfirm(false), 500);
-                }}
-              >
-                Keep
-              </button>
-              <button
-                className="cancel-confirmation-modal-confirm-button"
-                onClick={() => onCancel(appointment.id)}
-              >
-                Confirm
-              </button>
-            </div>
+          <h3 className="cancel-confirmation-modal-title">
+            Cancel Appointment?
+          </h3>
+          <p className="cancel-confirmation-modal-description">
+            Are you sure you want to cancel this appointment?
+          </p>
+          <p className="cancel-confirmation-modal-description-warning">
+            This action cannot be undone.
+          </p>
+          <div className="cancel-confirmation-modal-actions">
+            <button
+              className="cancel-confirmation-modal-keep-button"
+              onClick={() => {
+                setCancelConfirmTimeout(false);
+                setTimeout(() => setCancelConfirm(false), 500);
+              }}
+            >
+              Keep
+            </button>
+            <button
+              className="cancel-confirmation-modal-confirm-button"
+              onClick={() => {
+                setCancelConfirmTimeout(false);
+                setTimeout(() => setCancelConfirm(false), 500);
+                onCancel();
+              }}
+            >
+              Confirm
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    );
+  };
+
+  const NoShowConfirmationModal = () => {
+    return (
+      <div className={`cancel-modal-bg ${cancelConfirmTimeout ? '' : 'hide'}`}>
+        <div
+          className={`cancel-confirmation-modal ${cancelConfirmTimeout ? '' : 'hide'}`}
+        >
+          <h3 className="cancel-confirmation-modal-title">
+            No Show Appointment?
+          </h3>
+          <p className="cancel-confirmation-modal-description">
+            Are you sure you want to mark this appointment as no show?
+          </p>
+          <p className="cancel-confirmation-modal-description-warning">
+            This action cannot be undone.
+          </p>
+          <div className="cancel-confirmation-modal-actions">
+            <button
+              className="cancel-confirmation-modal-keep-button"
+              onClick={() => {
+                setCancelConfirmTimeout(false);
+                setTimeout(() => setCancelConfirm(false), 500);
+              }}
+            >
+              Keep Appointment
+            </button>
+            <button
+              className="cancel-confirmation-modal-confirm-button"
+              onClick={() => {
+                setCancelConfirmTimeout(false);
+                setTimeout(() => setCancelConfirm(false), 500);
+                onCancel();
+              }}
+            >
+              Confirm No Show
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="upcoming-appointment-card">
+      {cancelConfirm && type !== 'current' && <ConfirmCancellationModal />}
+      {cancelConfirm && type === 'current' && <NoShowConfirmationModal />}
       <div className="appointment-card">
         <div className="appointment-header">
           <h3>{appointment.patientName}</h3>
@@ -69,15 +121,17 @@ export default function UpcomingAppointmentCard({ appointment, onCancel }) {
             <p className="appointment-reason">{appointment.reason}</p>
           )}
         </div>
-        <div className="appointment-actions">
+        <div
+          className={`appointment-actions ${type === 'current' ? 'no-show-actions' : ''}`}
+        >
           <button
             onClick={() => {
               setCancelConfirmTimeout(true);
               setCancelConfirm(true);
             }}
-            className="cancel-appointment-button"
+            className={`${type === 'current' ? 'no-show-button' : 'cancel-appointment-button'}`}
           >
-            Cancel
+            {type === 'current' ? 'No Show' : 'Cancel'}
           </button>
         </div>
       </div>
@@ -86,6 +140,7 @@ export default function UpcomingAppointmentCard({ appointment, onCancel }) {
 }
 
 UpcomingAppointmentCard.propTypes = {
+  type: PropTypes.oneOf(['current', 'upcoming']).isRequired,
   appointment: PropTypes.shape({
     id: PropTypes.string.isRequired,
     patientName: PropTypes.string.isRequired,

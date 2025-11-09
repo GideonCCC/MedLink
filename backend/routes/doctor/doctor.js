@@ -5,6 +5,89 @@ import { ObjectId } from 'mongodb';
 
 const router = express.Router();
 
+router.delete('/appointment/:id', async (req, res) => {
+  try {
+    const db = getDatabase();
+    const { id } = req.params;
+    const { userId } = req.user;
+
+    const appointment = await db
+      .collection('appointments')
+      .findOne({ _id: new ObjectId(id), doctorId: userId });
+
+    if (!appointment) {
+      return res.status(404).json({
+        error: 'Appointment not found or you are not authorized to delete it',
+      });
+    }
+
+    await db.collection('appointments').deleteOne({ _id: appointment._id });
+
+    res.status(200).json({ message: 'Appointment deleted successfully' });
+  } catch (error) {
+    console.error('Delete appointment error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.put('/appointment/no-show/:id', async (req, res) => {
+  try {
+    const db = getDatabase();
+    const { id } = req.params;
+    const { userId } = req.user;
+
+    const appointment = await db
+      .collection('appointments')
+      .findOne({ _id: new ObjectId(id), doctorId: userId });
+
+    if (!appointment) {
+      return res.status(404).json({
+        error: 'Appointment not found or you are not authorized to update it',
+      });
+    }
+
+    await db
+      .collection('appointments')
+      .updateOne({ _id: appointment._id }, { $set: { status: 'no-show' } });
+
+    res
+      .status(200)
+      .json({ message: 'Appointment marked as no-show successfully' });
+  } catch (error) {
+    console.error('Update appointment error:', error);
+  }
+});
+
+router.get('/current-appointment', async (req, res) => {
+  try {
+    const db = getDatabase();
+    const { userId } = req.user;
+
+    const appointment = await db.collection('appointments').findOne({
+      doctorId: userId,
+      startDateTime: { $lte: new Date() },
+      endDateTime: { $gt: new Date() },
+      status: { $ne: 'no-show' },
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ error: 'No current appointment found' });
+    }
+
+    const patient = await db
+      .collection('users')
+      .findOne({ _id: new ObjectId(appointment.patientId) });
+
+    return res.status(200).json({
+      ...appointment,
+      patientName: patient.name,
+    });
+  } catch (error) {
+    console.error('Get current appointment error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.get('/past-appointments', async (req, res) => {
   try {
     const db = getDatabase();
