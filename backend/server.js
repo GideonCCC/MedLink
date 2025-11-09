@@ -16,6 +16,8 @@ app.use(express.json());
 
 // Set CORS headers manually without using the cors package
 app.use((req, res, next) => {
+  console.log('FRONTEND_ORIGIN', process.env.FRONTEND_ORIGIN);
+
   res.header(
     'Access-Control-Allow-Origin',
     process.env.FRONTEND_ORIGIN || 'http://localhost:3000'
