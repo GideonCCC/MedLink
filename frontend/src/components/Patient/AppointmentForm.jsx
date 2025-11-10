@@ -27,17 +27,21 @@ function AppointmentForm() {
     reason: '',
   });
 
-  function toInputValue(date) {
+  const toInputValue = useCallback((date) => {
     const tzOffset = date.getTimezoneOffset();
     const local = new Date(date.getTime() - tzOffset * 60000);
     return local.toISOString().slice(0, 16);
-  }
+  }, []);
 
-  function convertUtcToLocalInput(utcString) {
-    if (!utcString) return '';
-    const date = new Date(utcString);
-    return toInputValue(date);
-  }
+  const convertUtcToLocalInput = useCallback(
+    (utcString) => {
+      if (!utcString) return '';
+      const date = new Date(utcString);
+      return toInputValue(date);
+    },
+    [toInputValue]
+  );
+
   const loadDoctors = useCallback(async () => {
     try {
       const data = await apiClient('/api/doctors');
@@ -72,7 +76,7 @@ function AppointmentForm() {
     } catch (err) {
       setError(err.message);
     }
-  }, [id]);
+  }, [id, convertUtcToLocalInput]);
 
   useEffect(() => {
     loadDoctors();
@@ -93,7 +97,13 @@ function AppointmentForm() {
         });
       }
     }
-  }, [isEdit, loadAppointment, loadDoctors, searchParams]);
+  }, [
+    isEdit,
+    loadAppointment,
+    loadDoctors,
+    searchParams,
+    convertUtcToLocalInput,
+  ]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -339,10 +349,7 @@ function AppointmentForm() {
                   value={formData.endDateTime}
                   onChange={handleChange}
                   required
-                  min={
-                    formData.startDateTime ||
-                    toInputValue(new Date())
-                  }
+                  min={formData.startDateTime || toInputValue(new Date())}
                 />
               </div>
             </div>

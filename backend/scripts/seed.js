@@ -28,6 +28,16 @@ const reasons = [
 
 const statuses = ['upcoming', 'completed', 'cancelled', 'no-show'];
 
+function generateTimeSlots(startHour, endHour) {
+  const slots = [];
+  for (let hour = startHour; hour < endHour; hour += 1) {
+    const hourStr = String(hour).padStart(2, '0');
+    slots.push(`${hourStr}:00`);
+    slots.push(`${hourStr}:30`);
+  }
+  return slots;
+}
+
 async function seed() {
   let client;
   try {
@@ -43,6 +53,7 @@ async function seed() {
     console.log('Clearing existing data...');
     await db.collection('users').deleteMany({});
     await db.collection('appointments').deleteMany({});
+    await db.collection('availability').deleteMany({});
 
     console.log('Creating users...');
     const users = [];
@@ -116,6 +127,21 @@ async function seed() {
       };
       const result = await db.collection('users').insertOne(doctor);
       doctors.push({ ...doctor, _id: result.insertedId });
+
+      const availability = generateTimeSlots(9, 17);
+
+      await db.collection('availability').insertOne({
+        userId: result.insertedId.toString(),
+        availability: {
+          Monday: availability,
+          Tuesday: availability,
+          Wednesday: availability,
+          Thursday: availability,
+          Friday: availability,
+          Saturday: availability,
+          Sunday: availability,
+        },
+      });
     }
 
     console.log(`Created ${users.length} users and ${doctors.length} doctors`);
