@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { connectToDatabase } from './database/connection.js';
 import authRoutes from './routes/auth.js';
 import appointmentRoutes from './routes/appointments.js';
@@ -10,38 +13,25 @@ import { requireAuth, requireRole } from './middleware/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
-// Middleware
-app.use((req, res, next) => {
-  res.header(
-    'Access-Control-Allow-Origin',
-    process.env.FRONTEND_ORIGIN || 'http://localhost:3000'
-  );
-  res.header(
-    'Access-Control-Allow-Methods',
-    'GET,POST,PUT,PATCH,DELETE,OPTIONS'
-  );
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  );
-  res.header('Access-Control-Allow-Credentials', 'true');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-  next();
-});
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDistPath = path.resolve(__dirname, '../frontend/dist');
+const hasFrontendBuild = fs.existsSync(frontendDistPath);
 
 app.use(express.json());
 
-// Routes
+// API Routes
 app.use('/auth', authRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/doctor', requireAuth, requireRole('doctor'), doctorOnlyRoutes);
 
-// Root route
-app.get('/', (req, res) => {
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+app.get('/api', (req, res) => {
   res.json({
     message: 'Clinic Appointment Management System API',
     endpoints: {
@@ -50,22 +40,37 @@ app.get('/', (req, res) => {
       appointments: '/api/appointments',
       doctors: '/api/doctors',
     },
-    frontend: process.env.FRONTEND_ORIGIN || 'http://localhost:3000',
   });
 });
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+// Serve frontend build if available
+if (hasFrontendBuild) {
+  app.use(express.static(frontendDistPath));
+}
+
+// SPA fallback for non-API routes
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
+    return next();
+  }
+
+  if (!hasFrontendBuild || req.method !== 'GET') {
+    return next();
+  }
+
+  return res.sendFile(path.join(frontendDistPath, 'index.html'), (err) => {
+    if (err) {
+      next(err);
+    }
+  });
 });
 
-app.use('/**', (req, res) => {
-  console.error('Request:', req.method, req.baseUrl);
-  console.error('Body:', req.body);
-  console.error('Headers:', req.headers);
-  console.error('Params:', req.params);
-  console.error('Query:', req.query);
-  res.status(404).json({ error: 'Not found' });
+// 404 handler for API/non-matched routes
+app.use((req, res) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  return res.status(404).send('Not found');
 });
 
 // Error handling middleware

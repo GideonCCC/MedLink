@@ -4,6 +4,53 @@ import jwt from 'jsonwebtoken';
 import { getDatabase } from '../database/connection.js';
 
 const router = express.Router();
+const CLINIC_TIME_ZONE = process.env.CLINIC_TIMEZONE || 'America/New_York';
+
+function getTimeZoneOffset(date, timeZone) {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
+  const parts = dtf.formatToParts(date).reduce((acc, part) => {
+    if (part.type !== 'literal') {
+      acc[part.type] = part.value;
+    }
+    return acc;
+  }, {});
+
+  const asUTC = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second)
+  );
+
+  return (asUTC - date.getTime()) / 60000;
+}
+
+function createZonedDate(year, month, day, hour, minute, timeZone) {
+  const utcDate = new Date(Date.UTC(year, month - 1, day, hour, minute, 0, 0));
+  const offsetMinutes = getTimeZoneOffset(utcDate, timeZone);
+  return new Date(utcDate.getTime() - offsetMinutes * 60000);
+}
+
+function formatTimeInZone(date, timeZone) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+}
 
 // Get all specialties (public - no auth required)
 router.get('/specialties', async (req, res) => {
@@ -79,16 +126,18 @@ router.get('/:id/availability', async (req, res) => {
 
     // Parse the date and get start/end of day in local time
     const [year, month, day] = date.split('-').map(Number);
-    const selectedDate = new Date(year, month - 1, day, 0, 0, 0, 0);
-    const nextDay = new Date(selectedDate);
-    nextDay.setDate(nextDay.getDate() + 1);
+    if ([year, month, day].some((value) => Number.isNaN(value))) {
+      return res.status(400).json({ error: 'Invalid date parameter' });
+    }
+    const startOfDay = createZonedDate(year, month, day, 0, 0, CLINIC_TIME_ZONE);
+    const startOfNextDay = createZonedDate(year, month, day + 1, 0, 0, CLINIC_TIME_ZONE);
 
     // Get all appointments for this doctor on this date
     const appointments = await db
       .collection('appointments')
       .find({
         doctorId: id,
-        startDateTime: { $gte: selectedDate, $lt: nextDay },
+        startDateTime: { $gte: startOfDay, $lt: startOfNextDay },
         status: { $ne: 'cancelled' },
       })
       .toArray();
@@ -103,7 +152,7 @@ router.get('/:id/availability', async (req, res) => {
           .collection('appointments')
           .find({
             patientId: decoded.userId,
-            startDateTime: { $gte: selectedDate, $lt: nextDay },
+            startDateTime: { $gte: startOfDay, $lt: startOfNextDay },
             status: { $ne: 'cancelled' },
           })
           .toArray();
@@ -118,12 +167,11 @@ router.get('/:id/availability', async (req, res) => {
     const endHour = 18;
     const now = new Date();
     const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
-    
+
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
-        const slotStart = new Date(year, month - 1, day, hour, minute, 0, 0);
-        const slotEnd = new Date(slotStart);
-        slotEnd.setMinutes(slotEnd.getMinutes() + 30);
+        const slotStart = createZonedDate(year, month, day, hour, minute, CLINIC_TIME_ZONE);
+        const slotEnd = new Date(slotStart.getTime() + 30 * 60 * 1000);
 
         // Skip if slot is less than 1 hour from now
         // This allows same-day appointments as long as they're at least 1 hour ahead
@@ -148,11 +196,7 @@ router.get('/:id/availability', async (req, res) => {
           start: slotStart.toISOString(),
           end: slotEnd.toISOString(),
           available: !isDoctorBooked && !isPatientBooked,
-          time: slotStart.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true,
-          }),
+          time: formatTimeInZone(slotStart, CLINIC_TIME_ZONE),
         });
       }
     }
@@ -163,7 +207,7 @@ router.get('/:id/availability', async (req, res) => {
         name: doctor.name,
         specialty: doctor.specialty,
       },
-      date: selectedDate.toISOString().split('T')[0],
+      date: date,
       slots,
     });
   } catch (error) {

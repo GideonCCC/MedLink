@@ -12,6 +12,7 @@ MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/clinic_appoi
 JWT_SECRET=your-secret-key-change-in-production-make-it-long-and-random
 NODE_ENV=development
 FRONTEND_ORIGIN=http://localhost:3000
+CLINIC_TIMEZONE=America/New_York
 ```
 
 2. Replace the placeholders:
@@ -20,6 +21,7 @@ FRONTEND_ORIGIN=http://localhost:3000
    - `<password>`: Your MongoDB Atlas password
    - `your-secret-key-change-in-production`: A random secret string for JWT signing (at least 32 characters)
    - `FRONTEND_ORIGIN`: The URL of your frontend application (e.g., `http://localhost:3000` for local development, or your production frontend URL)
+   - `CLINIC_TIMEZONE`: IANA timezone for clinic scheduling (default `America/New_York`)
 
 3. Get your MongoDB Atlas connection string:
 

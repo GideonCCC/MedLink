@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+  import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : '');
 
 export async function apiClient(endpoint, options = {}) {
   const token = localStorage.getItem('token');
