@@ -7,7 +7,18 @@
 
 .patient-brand {
   padding: 1rem 1.5rem;
-  text-align: center;
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  align-self: flex-start;
+}
+
+@media (max-width: 768px) {
+  .patient-brand {
+    position: static;
+    text-align: center;
+  }
 }
 
 .brand-link {
