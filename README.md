@@ -1,7 +1,7 @@
 # MedLink — Clinic Appointment Management System
 
 MedLink is a full-stack scheduling platform that streamlines communication between patients and doctors. Patients can discover available time slots, book or reschedule appointments, and track visit history. Doctors configure their availability, review upcoming visits, and monitor past appointments. Conflict detection prevents double-booking for both parties, and JWT-protected routes tailor the experience by role.
-- **Demo:** https://medlink-1dn6.onrender.com/ <!-- replace with the actual design 
+- **Demo:** https://medlink-1dn6.onrender.com/
 ## Authors
 
 - Shaobo (Ben) Chen  
