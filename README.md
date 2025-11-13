@@ -30,6 +30,11 @@ MedLink is a full-stack scheduling platform that streamlines communication betwe
 
 ---
 
+<!-- ---
+## Screenshot
+screenshot missing
+--- -->
+
 ## Project Highlights
 
 - **Role-based UX:** Patients and doctors see personalized dashboards once authenticated via JWT.
