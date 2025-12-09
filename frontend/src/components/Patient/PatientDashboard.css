@@ -18,13 +18,13 @@
 
 .dashboard-header h1 {
   font-size: 2.5rem;
-  color: #333;
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
 }
 
 .dashboard-header p {
   font-size: 1.1rem;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .dashboard-actions {
@@ -44,31 +44,31 @@
 }
 
 .primary-button {
-  background-color: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
+  background-color: var(--color-success);
   color: white;
 }
 
 .primary-button:hover {
-  background-color: #006b54; /* Darker on hover */
+  background-color: var(--color-success-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 107, 84, 0.3);
 }
 
 .secondary-button {
-  background-color: white;
-  color: #007a63; /* Same dark green as main page logo (WCAG AA contrast on white) */
-  border: 2px solid #006b54; /* Match text color */
+  background-color: var(--color-background);
+  color: var(--color-success);
+  border: 2px solid var(--color-success-hover);
 }
 
 .secondary-button:hover {
-  background-color: #f0fdfb;
-  color: #006b54; /* Darker on hover */
-  border-color: #005a47;
+  background-color: var(--color-primary-light);
+  color: var(--color-success-hover);
+  border-color: var(--color-primary-dark);
 }
 
 .error-banner {
-  background-color: #fee;
-  color: #c33;
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 2rem;
@@ -83,13 +83,13 @@
 .dashboard-header-section h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0 0 1.5rem 0;
 }
 
 .review-button {
   padding: 0.75rem 1.5rem;
-  background-color: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
+  background-color: var(--color-success);
   color: white;
   border-radius: 6px;
   font-weight: 600;
@@ -101,7 +101,7 @@
 }
 
 .review-button:hover {
-  background-color: #006b54; /* Darker on hover */
+  background-color: var(--color-success-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 107, 84, 0.3);
 }
@@ -117,7 +117,7 @@
 .empty-state {
   text-align: center;
   padding: 3rem;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .empty-state p {
@@ -125,13 +125,13 @@
 }
 
 .link-button {
-  color: #007a63; /* Same dark green as main page logo (WCAG AA contrast on white) */
+  color: var(--color-success);
   text-decoration: underline;
   font-weight: 500;
 }
 
 .link-button:hover {
-  color: #006b54; /* Darker on hover */
+  color: var(--color-success-hover);
 }
 
 .appointments-grid {
@@ -141,14 +141,14 @@
 }
 
 .appointment-card {
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--color-border);
   border-radius: 8px;
   padding: 1.5rem;
   transition: all 0.2s;
 }
 
 .appointment-card:hover {
-  border-color: #007a63;
+  border-color: var(--color-success);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -161,7 +161,7 @@
 
 .appointment-header h3 {
   font-size: 1.2rem;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .status-badge {
@@ -183,12 +183,12 @@
 
 .appointment-date {
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
 }
 
 .appointment-reason {
-  color: #666;
+  color: var(--color-text-secondary);
   margin-bottom: 0.25rem;
 }
 
@@ -203,7 +203,7 @@ p.appointment-specialty,
 .appointment-actions {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--color-border);
   display: flex;
   gap: 1rem;
   align-items: center;
@@ -211,14 +211,14 @@ p.appointment-specialty,
 }
 
 .action-button {
-  color: #007a63; /* Same dark green as main page logo (WCAG AA contrast on white) */
+  color: var(--color-success);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;
 }
 
 .action-button:hover {
-  color: #006b54; /* Darker on hover */
+  color: var(--color-success-hover);
 }
 }
 
@@ -227,7 +227,7 @@ p.appointment-specialty,
 }
 
 .cancel-appointment-button {
-  color: #dc3545;
+  color: var(--color-danger);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;
@@ -272,12 +272,12 @@ p.appointment-specialty,
 .modal-content h3 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0 0 1rem 0;
 }
 
 .modal-content p {
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0 0 2rem 0;
   line-height: 1.5;
 }
@@ -290,9 +290,9 @@ p.appointment-specialty,
 
 .modal-cancel-button {
   padding: 0.875rem 1.5rem;
-  background: white;
-  color: #666;
-  border: 2px solid #e0e0e0;
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  border: 2px solid var(--color-border);
   border-radius: 6px;
   font-weight: 500;
   font-size: 0.95rem;
@@ -302,12 +302,12 @@ p.appointment-specialty,
 }
 
 .modal-cancel-button:hover {
-  background: #f8f9fa;
+  background: var(--color-background-light);
 }
 
 .modal-confirm-button {
   padding: 0.875rem 1.5rem;
-  background: #dc3545;
+  background: var(--color-danger);
   color: white;
   border: none;
   border-radius: 6px;
@@ -319,5 +319,5 @@ p.appointment-specialty,
 }
 
 .modal-confirm-button:hover {
-  background: #c82333;
+  background: var(--color-danger-hover);
 }

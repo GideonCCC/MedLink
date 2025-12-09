@@ -20,7 +20,7 @@
 .form-header h1 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0 0 1.5rem 0;
 }
 
@@ -29,15 +29,15 @@
 }
 
 .error-banner {
-  background-color: #fee;
-  color: #c33;
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1.5rem;
 }
 
 .appointment-form {
-  background: white;
+  background: var(--color-background);
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -50,7 +50,7 @@
 .form-group label {
   display: block;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
@@ -60,7 +60,7 @@
 .form-group textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--color-border);
   border-radius: 6px;
   font-size: 1rem;
   transition: border-color 0.2s;
@@ -70,7 +70,7 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: #007a63;
+  border-color: var(--color-success);
   outline: none;
 }
 
@@ -82,7 +82,7 @@
 .time-hint {
   margin-top: 0.5rem;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--color-text-secondary);
   font-style: italic;
   line-height: 1.4;
 }
@@ -127,12 +127,12 @@
 }
 
 .submit-button {
-  background-color: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
+  background-color: var(--color-success);
   color: white;
 }
 
 .submit-button:hover:not(:disabled) {
-  background-color: #006b54; /* Darker on hover */
+  background-color: var(--color-success-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 107, 84, 0.3);
 }
@@ -184,7 +184,7 @@
 
 .select-time-button {
   padding: 0.75rem 1.5rem;
-  background-color: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
+  background-color: var(--color-success);
   color: white;
   border: none;
   border-radius: 6px;
@@ -275,7 +275,7 @@
 }
 
 .time-slot-nav-button {
-  background: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
+  background: var(--color-success);
   color: white;
   border: none;
   border-radius: 50%;
@@ -290,7 +290,7 @@
 }
 
 .time-slot-nav-button:hover {
-  background: #006b54;
+  background: var(--color-success-hover);
   transform: scale(1.1);
 }
 
@@ -312,7 +312,7 @@
 }
 
 .time-slot-date-text:hover {
-  color: #007a63; /* Same dark green as main page logo (WCAG AA contrast on white) */
+  color: var(--color-success);
 }
 
 .time-slot-date-full {
@@ -357,7 +357,7 @@
 }
 
 .time-slot-item.available:hover {
-  border-color: #007a63;
+  border-color: var(--color-success);
   background: #f0fdfb;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 184, 148, 0.2);

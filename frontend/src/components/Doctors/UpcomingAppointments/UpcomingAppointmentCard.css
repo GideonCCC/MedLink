@@ -80,7 +80,7 @@
 .cancel-confirmation-modal-description-warning {
   font-size: 1rem;
   font-weight: 500;
-  color: #dc3545;
+  color: var(--color-danger);
   margin: 0 0 2rem 0;
 }
 
@@ -115,7 +115,7 @@
 }
 
 .cancel-confirmation-modal-keep-button {
-  background: #007a63;
+  background: var(--color-success);
   color: white;
   border: none;
   border-radius: 5px;
@@ -124,7 +124,7 @@
 }
 
 .cancel-confirmation-modal-confirm-button {
-  background: #dc3545;
+  background: var(--color-danger);
   color: white;
   border: none;
   border-radius: 5px;
@@ -150,11 +150,11 @@
 }
 
 .cancel-confirmation-modal-keep-button:hover {
-  background: #006b54;
+  background: var(--color-success-hover);
 }
 
 .cancel-confirmation-modal-keep-button:active {
-  background: #006b54;
+  background: var(--color-success-hover);
 }
 
 .upcoming-appointment-card {
@@ -170,7 +170,7 @@
 }
 
 .appointment-card:hover {
-  border-color: #007a63;
+  border-color: var(--color-success);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -226,7 +226,7 @@
 }
 
 .cancel-appointment-button {
-  color: #dc3545;
+  color: var(--color-danger);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;

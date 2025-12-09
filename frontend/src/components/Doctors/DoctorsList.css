@@ -1,6 +1,6 @@
 .doctors-list-page {
   min-height: 100vh;
-  background: #ffffff;
+  background: var(--color-background);
 }
 
 /* Top Header with Brand and Close */
@@ -19,7 +19,7 @@
 .page-brand {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #007a63;
+  color: var(--color-success);
   margin: 0;
   flex: 1;
   text-align: center;
@@ -29,7 +29,7 @@
   background: none;
   border: none;
   font-size: 2rem;
-  color: #666;
+  color: var(--color-text-secondary);
   cursor: pointer;
   width: 40px;
   height: 40px;
@@ -44,7 +44,7 @@
 
 .close-button:hover {
   background: #f0f0f0;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .doctors-page-container {
@@ -61,7 +61,7 @@
 
 .page-title {
   font-size: 2rem;
-  color: #333;
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
   text-align: left;
   font-weight: 600;
@@ -79,7 +79,7 @@
 }
 
 .date-nav-button {
-  background: #007a63;
+  background: var(--color-success);
   color: white;
   border: none;
   border-radius: 50%;
@@ -94,7 +94,7 @@
 }
 
 .date-nav-button:hover:not(:disabled) {
-  background: #006b54;
+  background: var(--color-success-hover);
   transform: scale(1.1);
 }
 
@@ -107,15 +107,15 @@
 .date-display-bar {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
   min-width: 300px;
   text-align: center;
   flex: 1;
 }
 
 .error-banner {
-  background-color: #fee;
-  color: #c33;
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 2rem;
@@ -125,7 +125,7 @@
 .empty-state {
   text-align: center;
   padding: 3rem;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 /* Doctors Schedule List */
@@ -156,7 +156,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: #f0fdfb;
+  background: var(--color-primary-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -170,13 +170,13 @@
 
 .doctor-name-card {
   font-size: 1.5rem;
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0;
   font-weight: 700;
 }
 
 .doctor-specialty-card {
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0;
   font-size: 0.85rem;
 }
@@ -216,12 +216,12 @@
 }
 
 .est-text {
-  color: #999;
+  color: var(--color-text-light);
   font-size: 0.75rem;
 }
 
 .no-slots {
-  color: #999;
+  color: var(--color-text-light);
   font-style: italic;
   padding: 1rem 0;
 }

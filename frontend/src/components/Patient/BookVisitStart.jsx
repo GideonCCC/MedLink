@@ -625,11 +625,11 @@ function DoctorAvatar() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <circle cx="50" cy="50" r="50" fill="#f0fdfb" />
-      <circle cx="50" cy="35" r="15" fill="#007a63" />
+      <circle cx="50" cy="50" r="50" style={{ fill: 'var(--color-primary-light)' }} />
+      <circle cx="50" cy="35" r="15" style={{ fill: 'var(--color-success)' }} />
       <path
         d="M20 85 C20 65, 35 55, 50 55 C65 55, 80 65, 80 85"
-        fill="#007a63"
+        style={{ fill: 'var(--color-success)' }}
       />
     </svg>
   );
