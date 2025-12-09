@@ -47,6 +47,13 @@
   color: var(--color-text-primary);
 }
 
+.close-button:focus-visible,
+.close-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  background: #f0f0f0;
+}
+
 .doctors-page-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -102,6 +109,12 @@
   background: #ccc;
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.date-nav-button:focus-visible,
+.date-nav-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .date-display-bar {
@@ -209,6 +222,16 @@
 
 .time-slot-button:hover {
   background: #e8e8e8;
+}
+
+.time-slot-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.time-slot-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .time-text {

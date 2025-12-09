@@ -290,6 +290,13 @@
   transform: translateX(4px);
 }
 
+.reason-item:focus-visible,
+.reason-item:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  background: var(--color-primary-light);
+}
+
 .reason-icon-wrapper {
   width: 28px;
   height: 28px;
@@ -557,6 +564,12 @@
 
 .specialty-item {
   border-left: 3px solid var(--color-success);
+}
+
+.specialty-item:focus-visible,
+.specialty-item:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .modal-search-button {

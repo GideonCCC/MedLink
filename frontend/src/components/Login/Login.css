@@ -62,6 +62,11 @@
   background: #f0f0f0;
 }
 
+.back-button:focus-visible {
+  outline: 2px solid var(--color-success);
+  outline-offset: 2px;
+}
+
 .login-header {
   text-align: center;
   margin-bottom: 0.75rem;
@@ -136,6 +141,11 @@
   background-color: var(--color-success-hover);
 }
 
+.login-button:focus-visible {
+  outline: 2px solid var(--color-success);
+  outline-offset: 2px;
+}
+
 .login-toggle {
   margin-top: 0.5rem;
   text-align: center;
@@ -151,5 +161,10 @@
 
 .toggle-button:hover {
   color: var(--color-success-hover);
+}
+
+.toggle-button:focus-visible {
+  outline: 2px solid var(--color-success);
+  outline-offset: 2px;
 }
 

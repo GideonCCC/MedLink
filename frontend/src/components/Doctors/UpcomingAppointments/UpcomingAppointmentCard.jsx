@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './UpcomingAppointmentCard.css';
 
 function formatDate(dateString) {
@@ -23,12 +23,72 @@ export default function UpcomingAppointmentCard({
   const [cancelConfirmTimeout, setCancelConfirmTimeout] = useState(false);
 
   const ConfirmCancellationModal = () => {
+    const modalRef = useRef(null);
+    const firstFocusableRef = useRef(null);
+
+    useEffect(() => {
+      if (!cancelConfirm) return;
+      
+      document.body.style.overflow = 'hidden';
+      
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          setCancelConfirmTimeout(false);
+          setTimeout(() => setCancelConfirm(false), 500);
+        }
+      };
+
+      document.addEventListener('keydown', handleEscape);
+      
+      // Focus first button when modal opens
+      setTimeout(() => {
+        if (firstFocusableRef.current) {
+          firstFocusableRef.current.focus();
+        }
+      }, 100);
+
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = 'unset';
+      };
+    }, [cancelConfirm]);
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Tab') {
+        const focusableElements = modalRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements && focusableElements.length > 0) {
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              e.preventDefault();
+              lastElement.focus();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              e.preventDefault();
+              firstElement.focus();
+            }
+          }
+        }
+      }
+    };
+
     return (
       <div className={`cancel-modal-bg ${cancelConfirmTimeout ? '' : 'hide'}`}>
         <div
           className={`cancel-confirmation-modal ${cancelConfirmTimeout ? '' : 'hide'}`}
+          ref={modalRef}
+          onKeyDown={handleKeyDown}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cancel-modal-title"
         >
-          <h3 className="cancel-confirmation-modal-title">
+          <h3 id="cancel-modal-title" className="cancel-confirmation-modal-title">
             Cancel Appointment?
           </h3>
           <p className="cancel-confirmation-modal-description">
@@ -44,6 +104,15 @@ export default function UpcomingAppointmentCard({
                 setCancelConfirmTimeout(false);
                 setTimeout(() => setCancelConfirm(false), 500);
               }}
+              ref={firstFocusableRef}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setCancelConfirmTimeout(false);
+                  setTimeout(() => setCancelConfirm(false), 500);
+                }
+              }}
             >
               Keep
             </button>
@@ -53,6 +122,15 @@ export default function UpcomingAppointmentCard({
                 setCancelConfirmTimeout(false);
                 setTimeout(() => setCancelConfirm(false), 500);
                 onCancel();
+              }}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setCancelConfirmTimeout(false);
+                  setTimeout(() => setCancelConfirm(false), 500);
+                  onCancel();
+                }
               }}
             >
               Confirm
@@ -64,12 +142,72 @@ export default function UpcomingAppointmentCard({
   };
 
   const NoShowConfirmationModal = () => {
+    const modalRef = useRef(null);
+    const firstFocusableRef = useRef(null);
+
+    useEffect(() => {
+      if (!cancelConfirm) return;
+      
+      document.body.style.overflow = 'hidden';
+      
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          setCancelConfirmTimeout(false);
+          setTimeout(() => setCancelConfirm(false), 500);
+        }
+      };
+
+      document.addEventListener('keydown', handleEscape);
+      
+      // Focus first button when modal opens
+      setTimeout(() => {
+        if (firstFocusableRef.current) {
+          firstFocusableRef.current.focus();
+        }
+      }, 100);
+
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = 'unset';
+      };
+    }, [cancelConfirm]);
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Tab') {
+        const focusableElements = modalRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements && focusableElements.length > 0) {
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              e.preventDefault();
+              lastElement.focus();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              e.preventDefault();
+              firstElement.focus();
+            }
+          }
+        }
+      }
+    };
+
     return (
       <div className={`cancel-modal-bg ${cancelConfirmTimeout ? '' : 'hide'}`}>
         <div
           className={`cancel-confirmation-modal ${cancelConfirmTimeout ? '' : 'hide'}`}
+          ref={modalRef}
+          onKeyDown={handleKeyDown}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="no-show-modal-title"
         >
-          <h3 className="cancel-confirmation-modal-title">
+          <h3 id="no-show-modal-title" className="cancel-confirmation-modal-title">
             No Show Appointment?
           </h3>
           <p className="cancel-confirmation-modal-description">
@@ -85,6 +223,15 @@ export default function UpcomingAppointmentCard({
                 setCancelConfirmTimeout(false);
                 setTimeout(() => setCancelConfirm(false), 500);
               }}
+              ref={firstFocusableRef}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setCancelConfirmTimeout(false);
+                  setTimeout(() => setCancelConfirm(false), 500);
+                }
+              }}
             >
               Keep Appointment
             </button>
@@ -94,6 +241,15 @@ export default function UpcomingAppointmentCard({
                 setCancelConfirmTimeout(false);
                 setTimeout(() => setCancelConfirm(false), 500);
                 onCancel();
+              }}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setCancelConfirmTimeout(false);
+                  setTimeout(() => setCancelConfirm(false), 500);
+                  onCancel();
+                }
               }}
             >
               Confirm No Show
@@ -130,6 +286,14 @@ export default function UpcomingAppointmentCard({
               setCancelConfirm(true);
             }}
             className={`${type === 'current' ? 'no-show-button' : 'cancel-appointment-button'}`}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setCancelConfirmTimeout(true);
+                setCancelConfirm(true);
+              }
+            }}
           >
             {type === 'current' ? 'Mark as No Show' : 'Cancel'}
           </button>

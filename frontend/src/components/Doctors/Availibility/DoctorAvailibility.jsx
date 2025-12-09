@@ -84,6 +84,93 @@ export default function DoctorAvailibility() {
     setShowSaveConfirm(false);
   };
 
+  // Global keyboard navigation for cross-day navigation
+  useEffect(() => {
+    const handleCrossDayNavigation = (e) => {
+      // Only handle arrow keys when focus is on a time slot button
+      if (
+        (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') &&
+        e.target.classList.contains('slot-button')
+      ) {
+        const dayCard = e.target.closest('.day-card');
+        if (!dayCard) return;
+        
+        const allDayButtons = Array.from(dayCard.querySelectorAll('.slot-button'));
+        const currentIndex = allDayButtons.findIndex(btn => btn === e.target);
+        
+        if (currentIndex === -1) return;
+        
+        const isLastButton = currentIndex === allDayButtons.length - 1;
+        const isFirstButton = currentIndex === 0;
+        
+        // Get the day name from the day card
+        const dayHeader = dayCard.querySelector('.day-header');
+        const dayName = dayHeader?.textContent?.split('\n')[0]?.trim() || '';
+        const isSunday = dayName === 'Sunday';
+        const isMonday = dayName === 'Monday';
+        
+        // Check if we're at a boundary where navigation should go to save button or next/prev day
+        if (
+          (e.key === 'ArrowRight' && isLastButton) ||
+          (e.key === 'ArrowDown' && isLastButton)
+        ) {
+          // If it's Sunday and last button, navigate to save button
+          if (isSunday && isLastButton && e.key === 'ArrowDown') {
+            e.preventDefault();
+            e.stopPropagation();
+            const saveButton = document.querySelector('.save-button');
+            if (saveButton) {
+              saveButton.focus();
+            }
+            return;
+          }
+          
+          // Navigate to next day's first button
+          const allDayCards = Array.from(document.querySelectorAll('.day-card'));
+          const currentDayIndex = allDayCards.findIndex(card => card === dayCard);
+          if (currentDayIndex < allDayCards.length - 1) {
+            e.preventDefault();
+            e.stopPropagation();
+            const nextDayCard = allDayCards[currentDayIndex + 1];
+            const firstButton = nextDayCard?.querySelector('.slot-button');
+            if (firstButton) {
+              firstButton.focus();
+            }
+          }
+        } else if (
+          (e.key === 'ArrowLeft' && isFirstButton) ||
+          (e.key === 'ArrowUp' && isFirstButton)
+        ) {
+          // Navigate to previous day's last button
+          const allDayCards = Array.from(document.querySelectorAll('.day-card'));
+          const currentDayIndex = allDayCards.findIndex(card => card === dayCard);
+          if (currentDayIndex > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            const prevDayCard = allDayCards[currentDayIndex - 1];
+            const lastButton = Array.from(prevDayCard?.querySelectorAll('.slot-button') || []).pop();
+            if (lastButton) {
+              lastButton.focus();
+            }
+          } else if (isMonday && isFirstButton && e.key === 'ArrowUp') {
+            // If it's Monday (first day) and first button, navigate to save button
+            e.preventDefault();
+            e.stopPropagation();
+            const saveButton = document.querySelector('.save-button');
+            if (saveButton) {
+              saveButton.focus();
+            }
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleCrossDayNavigation, true);
+    return () => {
+      document.removeEventListener('keydown', handleCrossDayNavigation, true);
+    };
+  }, []);
+
   return (
     <>
       {submitting && (
@@ -125,6 +212,15 @@ export default function DoctorAvailibility() {
             disabled={submitting}
             className="save-button"
             aria-label="Save availability settings"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (!submitting) {
+                  handleSaveClick();
+                }
+              }
+            }}
           >
             {submitting ? 'Saving...' : 'Save Availability'}
           </button>
@@ -220,6 +316,13 @@ function SaveConfirmModal({ onConfirm, onDismiss }) {
             className="modal-cancel-button"
             aria-label="Cancel saving"
             ref={firstFocusableRef}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onDismiss();
+              }
+            }}
           >
             Cancel
           </button>
@@ -227,6 +330,13 @@ function SaveConfirmModal({ onConfirm, onDismiss }) {
             onClick={onConfirm}
             className="modal-confirm-button"
             aria-label="Save availability"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onConfirm();
+              }
+            }}
           >
             Save
           </button>

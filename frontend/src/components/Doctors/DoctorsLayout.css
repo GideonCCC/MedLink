@@ -111,6 +111,11 @@
   background: #006b54;
 }
 
+.sidebar-nav-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .sidebar-logout {
   margin-top: auto;
   color: #c33;
@@ -211,9 +216,12 @@
   border-color: #ccc;
 }
 
-.modal-cancel-button:focus {
-  outline: 2px solid var(--color-info);
+.modal-cancel-button:focus,
+.modal-cancel-button:focus-visible {
+  outline: 3px solid #007a63;
   outline-offset: 2px;
+  background: #f0f0f0;
+  border-color: #007a63;
 }
 
 .modal-confirm-button {
@@ -234,7 +242,11 @@
   border-color: #a00;
 }
 
-.modal-confirm-button:focus {
-  outline: 2px solid var(--color-info);
+.modal-confirm-button:focus,
+.modal-confirm-button:focus-visible {
+  outline: 3px solid #ffcc00;
   outline-offset: 2px;
+  background: #d44;
+  border-color: #ffcc00;
+  box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.3);
 }

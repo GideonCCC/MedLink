@@ -84,6 +84,13 @@
   background-color: #e9ecef;
 }
 
+.clear-filters:focus-visible,
+.clear-filters:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  background-color: #e9ecef;
+}
+
 .error-banner {
   background-color: #fee;
   color: #c33;
@@ -231,6 +238,12 @@ p.specialty,
 .page-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.page-button:focus-visible,
+.page-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .page-info {

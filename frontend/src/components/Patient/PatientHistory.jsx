@@ -19,6 +19,125 @@ function PatientHistory() {
     loadAppointments();
   }, [filters]);
 
+  // Arrow key and Enter key navigation for keyboard accessibility
+  useEffect(() => {
+    const handleKeyNavigation = (e) => {
+      // Only handle if focus is within the content area (not sidebar)
+      const contentArea = document.querySelector('.patient-content');
+      if (!contentArea || !contentArea.contains(e.target)) {
+        return; // Don't handle if focus is in sidebar
+      }
+
+      // Allow ESC key to bubble up to PatientLayout for returning to sidebar
+      if (e.key === 'Escape') {
+        return; // Let PatientLayout handle ESC
+      }
+
+      const historyContainer = document.querySelector('.patient-history');
+      if (!historyContainer) return;
+
+      // Include select elements in focusable elements for navigation
+      const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const allFocusableElements = Array.from(
+        historyContainer.querySelectorAll(focusableSelectors)
+      ).filter(el => {
+        return el.offsetParent !== null && 
+               !el.disabled && 
+               !el.hasAttribute('aria-hidden') &&
+               window.getComputedStyle(el).visibility !== 'hidden' &&
+               !el.closest('.patient-sidebar') && // Exclude sidebar elements
+               !el.closest('.sidebar-nav'); // Exclude sidebar navigation
+      });
+
+      if (allFocusableElements.length === 0) return;
+
+      const currentIndex = allFocusableElements.findIndex(
+        el => el === document.activeElement
+      );
+
+      // Handle select elements specially
+      if (e.target.tagName === 'SELECT') {
+        // When select is focused but not open, allow arrow keys to navigate between fields
+        // When select dropdown is open, let browser handle arrow keys for option selection
+        // Check if select is open by checking if it has focus and if the dropdown is visible
+        // For native select, we can't easily detect if dropdown is open
+        // So we'll allow Enter to open/close the dropdown (browser default)
+        // and only prevent arrow keys when the select is NOT the active element (shouldn't happen, but just in case)
+        
+        // For Enter key on select: let browser handle it (opens/closes dropdown or confirms selection)
+        if (e.key === 'Enter') {
+          return; // Let browser handle Enter on select
+        }
+        
+        // For arrow keys on select: 
+        // - If dropdown is open, let browser handle it (selects options)
+        // - If dropdown is closed, we want to navigate to next/prev field
+        // Since we can't reliably detect if dropdown is open, we'll use a heuristic:
+        // If user presses arrow key and the select is focused, assume they want to navigate between fields
+        // But we need to be careful - if the dropdown is open, we should let browser handle it
+        
+        // For now, let's allow arrow keys to navigate between fields when select is focused
+        // The browser will handle opening the dropdown if needed
+        // Actually, for native select, arrow keys when focused will open dropdown and select options
+        // So we should NOT prevent default for arrow keys on select
+        return; // Let browser handle all keys on select element
+      }
+
+      // Handle Enter key: move to next field/button (except for buttons/links where it should trigger action)
+      if (e.key === 'Enter') {
+        const currentElement = document.activeElement;
+        const isInput = currentElement.tagName === 'INPUT' || currentElement.tagName === 'TEXTAREA';
+        
+        if (isInput && currentIndex !== -1) {
+          // In input fields, Enter moves to next field
+          e.preventDefault();
+          const nextIndex = currentIndex < allFocusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          allFocusableElements[nextIndex]?.focus();
+          return;
+        }
+        // For buttons and links, let default behavior handle it (trigger action)
+        return;
+      }
+
+      // Don't interfere if user is typing in an input or textarea
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // Arrow keys: navigate between focusable elements (including select)
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        if (currentIndex === -1) {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            allFocusableElements[0]?.focus();
+          }
+          return;
+        }
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const nextIndex = currentIndex < allFocusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          allFocusableElements[nextIndex]?.focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 
+            ? currentIndex - 1 
+            : allFocusableElements.length - 1;
+          allFocusableElements[prevIndex]?.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyNavigation);
+    return () => {
+      document.removeEventListener('keydown', handleKeyNavigation);
+    };
+  }, []);
+
   async function loadAppointments() {
     try {
       setLoading(true);
@@ -98,6 +217,12 @@ function PatientHistory() {
 
           <button
             onClick={() => setFilters({ status: '', from: '', to: '', page: 1 })}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setFilters({ status: '', from: '', to: '', page: 1 });
+              }
+            }}
             className="clear-filters"
           >
             Clear Filters
@@ -127,6 +252,12 @@ function PatientHistory() {
               <div className="pagination">
                 <button
                   onClick={() => handlePageChange(pagination.page - 1)}
+                  onKeyDown={(e) => {
+                    if (!(pagination.page === 1) && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      handlePageChange(pagination.page - 1);
+                    }
+                  }}
                   disabled={pagination.page === 1}
                   className="page-button"
                 >
@@ -137,6 +268,12 @@ function PatientHistory() {
                 </span>
                 <button
                   onClick={() => handlePageChange(pagination.page + 1)}
+                  onKeyDown={(e) => {
+                    if (!(pagination.page === pagination.pages) && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      handlePageChange(pagination.page + 1);
+                    }
+                  }}
                   disabled={pagination.page === pagination.pages}
                   className="page-button"
                 >

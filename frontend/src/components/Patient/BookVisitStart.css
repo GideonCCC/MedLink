@@ -138,6 +138,13 @@
   transform: translateX(4px);
 }
 
+.reason-item:focus-visible,
+.reason-item:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  background: #e9ecef;
+}
+
 .reason-icon-wrapper {
   display: flex;
   align-items: center;
@@ -305,6 +312,13 @@
   font-family: inherit;
 }
 
+.specialty-item:focus-visible,
+.specialty-item:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  background: #e9ecef;
+}
+
 .specialty-item:hover {
   background: #007a63;
   color: white;
@@ -416,6 +430,12 @@
   opacity: 0.6;
 }
 
+.date-nav-button:focus-visible,
+.date-nav-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .date-display-bar {
   font-size: 1.25rem;
   font-weight: 600;
@@ -517,6 +537,13 @@
   transition: all 0.2s;
   flex: 0 0 calc(25% - 0.375rem);
   min-width: 0;
+}
+
+.time-slot-button:focus-visible,
+.time-slot-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  background: #e8e8e8;
 }
 
 .time-slot-button:hover {

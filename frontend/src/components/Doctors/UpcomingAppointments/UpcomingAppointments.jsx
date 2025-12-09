@@ -113,6 +113,75 @@ export default function UpcomingAppointments() {
     [loadCurrentAppointment, loadAppointments]
   );
 
+  // Keyboard navigation for filters and cards (ONLY within content area, NOT sidebar)
+  useEffect(() => {
+    const handleArrowKeyNavigation = (e) => {
+      // Don't interfere with input fields, selects, or textareas
+      if (
+        e.target.tagName === 'INPUT' ||
+        e.target.tagName === 'SELECT' ||
+        e.target.tagName === 'TEXTAREA'
+      ) {
+        return;
+      }
+
+      // Only handle if focus is within the content area (not sidebar)
+      const contentArea = document.querySelector('.doctor-content');
+      if (!contentArea || !contentArea.contains(e.target)) {
+        return; // Don't handle if focus is in sidebar
+      }
+
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        // Only query elements within the content area, NOT sidebar
+        const allFocusableElements = Array.from(
+          contentArea.querySelectorAll(
+            '.filter-button, .appointment-card, button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter(el => {
+          return el.offsetParent !== null && 
+                 !el.disabled && 
+                 !el.hasAttribute('aria-hidden') &&
+                 window.getComputedStyle(el).visibility !== 'hidden' &&
+                 !el.closest('.doctor-menu-bar') && // Exclude sidebar elements
+                 !el.closest('.sidebar-nav'); // Exclude sidebar navigation
+        });
+
+        if (allFocusableElements.length === 0) return;
+
+        const currentIndex = allFocusableElements.findIndex(
+          el => el === document.activeElement
+        );
+
+        if (currentIndex === -1) {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            allFocusableElements[0]?.focus();
+          }
+          return;
+        }
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const nextIndex = currentIndex < allFocusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          allFocusableElements[nextIndex]?.focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 
+            ? currentIndex - 1 
+            : allFocusableElements.length - 1;
+          allFocusableElements[prevIndex]?.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleArrowKeyNavigation);
+    return () => {
+      document.removeEventListener('keydown', handleArrowKeyNavigation);
+    };
+  }, [appointments, currentAppointment]);
+
   return (
     <div className="upcoming-appointments">
         {error && <div className="error-message" role="alert">{error}</div>}
@@ -146,6 +215,13 @@ export default function UpcomingAppointments() {
                 type="button"
                 className={`filter-button ${dateFilter === 'all' ? 'active' : ''}`}
                 onClick={() => handleFilterChange('all')}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleFilterChange('all');
+                  }
+                }}
                 aria-pressed={dateFilter === 'all'}
               >
                 All Upcoming
@@ -154,6 +230,13 @@ export default function UpcomingAppointments() {
                 type="button"
                 className={`filter-button ${dateFilter === 'next-week' ? 'active' : ''}`}
                 onClick={() => handleFilterChange('next-week')}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleFilterChange('next-week');
+                  }
+                }}
                 aria-pressed={dateFilter === 'next-week'}
               >
                 Next Week
@@ -162,6 +245,13 @@ export default function UpcomingAppointments() {
                 type="button"
                 className={`filter-button ${dateFilter === 'next-month' ? 'active' : ''}`}
                 onClick={() => handleFilterChange('next-month')}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleFilterChange('next-month');
+                  }
+                }}
                 aria-pressed={dateFilter === 'next-month'}
               >
                 Next Month
@@ -170,6 +260,13 @@ export default function UpcomingAppointments() {
                 type="button"
                 className={`filter-button ${dateFilter === 'next-3-months' ? 'active' : ''}`}
                 onClick={() => handleFilterChange('next-3-months')}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleFilterChange('next-3-months');
+                  }
+                }}
                 aria-pressed={dateFilter === 'next-3-months'}
               >
                 Next 3 Months
@@ -189,14 +286,15 @@ export default function UpcomingAppointments() {
           ) : (
             <div className="appointments-grid">
               {appointments.map((appointment) => (
-                <UpcomingAppointmentCard
-                  key={appointment._id}
-                  type="upcoming"
-                  appointment={appointment}
-                  onCancel={() => {
-                    cancelAppointment(appointment._id);
-                  }}
-                />
+                <div key={appointment._id} tabIndex={0}>
+                  <UpcomingAppointmentCard
+                    type="upcoming"
+                    appointment={appointment}
+                    onCancel={() => {
+                      cancelAppointment(appointment._id);
+                    }}
+                  />
+                </div>
               ))}
             </div>
           )}

@@ -193,6 +193,76 @@ function Home() {
     setShowModal(true);
   };
 
+  // Arrow key navigation for keyboard accessibility
+  useEffect(() => {
+    const handleArrowKeyNavigation = (e) => {
+      // Only handle arrow keys if not in a modal or input field
+      if (showModal) return;
+      
+      // Don't interfere if user is typing in an input
+      if (e.target.tagName === 'INPUT' && e.target.type === 'text' && !e.target.readOnly) {
+        return;
+      }
+      
+      // Get all focusable elements on the page (navbar + booking box)
+      const focusableSelectors = 'input, button, [href], [tabindex]:not([tabindex="-1"])';
+      
+      // Get navbar elements
+      const navbar = document.querySelector('.navbar');
+      const navbarElements = navbar ? Array.from(navbar.querySelectorAll(focusableSelectors)) : [];
+      
+      // Get booking box elements
+      const bookingBox = document.querySelector('.booking-box');
+      const bookingElements = bookingBox ? Array.from(bookingBox.querySelectorAll(focusableSelectors)) : [];
+      
+      // Combine all focusable elements in order: navbar first, then booking box
+      const allFocusableElements = [
+        ...navbarElements,
+        ...bookingElements
+      ].filter(el => {
+        // Filter out disabled or hidden elements
+        return el.offsetParent !== null && 
+               !el.disabled && 
+               !el.hasAttribute('aria-hidden') &&
+               window.getComputedStyle(el).visibility !== 'hidden';
+      });
+      
+      if (allFocusableElements.length === 0) return;
+      
+      const currentIndex = allFocusableElements.findIndex(
+        el => el === document.activeElement
+      );
+      
+      // If no element is focused, focus the first one on ArrowDown
+      if (currentIndex === -1) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          allFocusableElements[0]?.focus();
+        }
+        return;
+      }
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextIndex = currentIndex < allFocusableElements.length - 1 
+          ? currentIndex + 1 
+          : 0;
+        allFocusableElements[nextIndex]?.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prevIndex = currentIndex > 0 
+          ? currentIndex - 1 
+          : allFocusableElements.length - 1;
+        allFocusableElements[prevIndex]?.focus();
+      }
+    };
+    
+    document.addEventListener('keydown', handleArrowKeyNavigation);
+    return () => {
+      document.removeEventListener('keydown', handleArrowKeyNavigation);
+    };
+  }, [showModal]);
+
   const filteredSpecialties = React.useMemo(() => {
     const lowerQuery = modalSearchQuery.toLowerCase().trim();
     
@@ -310,8 +380,27 @@ function Home() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="search-input"
                     readOnly
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSearchInputClick();
+                      }
+                    }}
+                    tabIndex={0}
                   />
-                  <button type="button" className="search-icon-button" aria-label="Search">
+                  <button 
+                    type="button" 
+                    className="search-icon-button" 
+                    aria-label="Search"
+                    onClick={handleSearchInputClick}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSearchInputClick();
+                      }
+                    }}
+                    tabIndex={0}
+                  >
                     🔍
                   </button>
                 </div>
@@ -324,6 +413,13 @@ function Home() {
                       key={service.id}
                       className="reason-item"
                       onClick={() => handleServiceClick(service.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleServiceClick(service.id);
+                        }
+                      }}
+                      tabIndex={0}
                     >
                       <ServiceIcon iconType={service.id} />
                       <span className="reason-name">{service.name}</span>
@@ -534,6 +630,12 @@ function SearchModal({
                     key={specialty}
                     className="specialty-item"
                     onClick={() => onSpecialtyClick(specialty)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSpecialtyClick(specialty);
+                      }
+                    }}
                   >
                     {specialty}
                   </button>

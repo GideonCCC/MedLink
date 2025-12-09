@@ -58,6 +58,74 @@ function BookVisitStart() {
     loadSpecialties();
   }, []);
 
+  // Arrow key navigation for keyboard accessibility
+  useEffect(() => {
+    const handleArrowKeyNavigation = (e) => {
+      // Only handle if modals are not open
+      if (showModal || showDoctorsModal) return;
+      
+      // Don't interfere if user is typing in an input
+      if (e.target.tagName === 'INPUT' && e.target.type === 'text' && !e.target.readOnly) {
+        return;
+      }
+      
+      // Only handle if focus is within the content area (not sidebar)
+      const contentArea = document.querySelector('.patient-content');
+      if (!contentArea || !contentArea.contains(e.target)) {
+        return; // Don't handle if focus is in sidebar
+      }
+      
+      // Get all focusable elements on the page (only within content area)
+      const focusableSelectors = 'input, button, [href], [tabindex]:not([tabindex="-1"])';
+      const pageContainer = document.querySelector('.book-visit-start');
+      if (!pageContainer) return;
+      
+      const allFocusableElements = Array.from(
+        pageContainer.querySelectorAll(focusableSelectors)
+      ).filter(el => {
+        return el.offsetParent !== null && 
+               !el.disabled && 
+               !el.hasAttribute('aria-hidden') &&
+               window.getComputedStyle(el).visibility !== 'hidden' &&
+               !el.closest('.patient-sidebar') && // Exclude sidebar elements
+               !el.closest('.sidebar-nav'); // Exclude sidebar navigation
+      });
+      
+      if (allFocusableElements.length === 0) return;
+      
+      const currentIndex = allFocusableElements.findIndex(
+        el => el === document.activeElement
+      );
+      
+      if (currentIndex === -1) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          allFocusableElements[0]?.focus();
+        }
+        return;
+      }
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextIndex = currentIndex < allFocusableElements.length - 1 
+          ? currentIndex + 1 
+          : 0;
+        allFocusableElements[nextIndex]?.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prevIndex = currentIndex > 0 
+          ? currentIndex - 1 
+          : allFocusableElements.length - 1;
+        allFocusableElements[prevIndex]?.focus();
+      }
+    };
+    
+    document.addEventListener('keydown', handleArrowKeyNavigation);
+    return () => {
+      document.removeEventListener('keydown', handleArrowKeyNavigation);
+    };
+  }, [showModal, showDoctorsModal]);
+
   async function loadSpecialties() {
     try {
       const data = await apiClient('/api/doctors/specialties');
@@ -138,6 +206,12 @@ function BookVisitStart() {
                 key={service.id}
                 className="reason-item"
                 onClick={() => handleServiceClick(service.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleServiceClick(service.id);
+                  }
+                }}
               >
                 <ServiceIcon iconType={service.id} />
                 <span className="reason-name">{service.name}</span>
@@ -257,6 +331,13 @@ function SearchModal({
           className="modal-close"
           onClick={onClose}
           aria-label="Close search modal"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onClose();
+            }
+          }}
         >
           ×
         </button>
@@ -276,7 +357,7 @@ function SearchModal({
               className="modal-search-input"
               autoFocus
             />
-            <button type="submit" className="modal-search-button" aria-label="Search">
+            <button type="submit" className="modal-search-button" aria-label="Search" tabIndex={0}>
               🔍
             </button>
           </div>
@@ -293,6 +374,12 @@ function SearchModal({
                   key={specialty}
                   className="specialty-item"
                   onClick={() => onSpecialtyClick(specialty)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSpecialtyClick(specialty);
+                    }
+                  }}
                 >
                   {specialty}
                 </button>
@@ -394,6 +481,140 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
             firstElement.focus();
           }
         }
+      }
+    }
+    
+    // Arrow key navigation for time slot buttons (spatial navigation based on time)
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      const currentButton = document.activeElement;
+      if (!currentButton?.classList.contains('time-slot-button')) {
+        return;
+      }
+      
+      const timeSlotButtons = Array.from(
+        modalRef.current?.querySelectorAll('.time-slot-button:not(:disabled)')
+      ).filter(btn => {
+        return btn.offsetParent !== null && !btn.disabled;
+      });
+      
+      if (timeSlotButtons.length === 0) return;
+      
+      e.preventDefault();
+      
+      // Parse time from button text (e.g., "10:00 AM EST" or "10:00")
+      const parseTime = (timeStr) => {
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        if (!match) return null;
+        let hours = parseInt(match[1], 10);
+        const minutes = parseInt(match[2], 10);
+        const period = match[3]?.toUpperCase();
+        
+        if (period === 'PM' && hours !== 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+        
+        return { hours, minutes, totalMinutes: hours * 60 + minutes };
+      };
+      
+      const currentTimeText = currentButton.textContent.trim();
+      const currentTime = parseTime(currentTimeText);
+      
+      if (!currentTime) {
+        // Fallback to simple index navigation
+        const currentIndex = timeSlotButtons.findIndex(btn => btn === currentButton);
+        if (e.key === 'ArrowRight') {
+          const nextIndex = currentIndex < timeSlotButtons.length - 1 ? currentIndex + 1 : 0;
+          timeSlotButtons[nextIndex]?.focus();
+        } else if (e.key === 'ArrowLeft') {
+          const prevIndex = currentIndex > 0 ? currentIndex - 1 : timeSlotButtons.length - 1;
+          timeSlotButtons[prevIndex]?.focus();
+        }
+        return;
+      }
+      
+      // Calculate target time based on direction
+      let targetMinutes = currentTime.totalMinutes;
+      if (e.key === 'ArrowRight') {
+        targetMinutes += 30; // Next 30 minutes
+      } else if (e.key === 'ArrowLeft') {
+        targetMinutes -= 30; // Previous 30 minutes
+      } else if (e.key === 'ArrowDown') {
+        // Same minute in next hour (e.g., 10:00 -> 12:00, 10:30 -> 12:30)
+        targetMinutes += 120; // Add 2 hours
+      } else if (e.key === 'ArrowUp') {
+        // Same minute in previous hour (e.g., 12:00 -> 10:00, 12:30 -> 10:30)
+        targetMinutes -= 120; // Subtract 2 hours
+      }
+      
+      // Find button with matching time
+      const targetButton = timeSlotButtons.find(btn => {
+        const btnTimeText = btn.textContent.trim();
+        const btnTime = parseTime(btnTimeText);
+        return btnTime && btnTime.totalMinutes === targetMinutes;
+      });
+      
+      if (targetButton && targetButton !== currentButton) {
+        targetButton.focus();
+      } else {
+        // If exact match not found, find closest time
+        const sortedButtons = timeSlotButtons
+          .map(btn => {
+            const btnTimeText = btn.textContent.trim();
+            const btnTime = parseTime(btnTimeText);
+            return { btn, time: btnTime };
+          })
+          .filter(item => item.time !== null)
+          .sort((a, b) => a.time.totalMinutes - b.time.totalMinutes);
+        
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          const nextButton = sortedButtons.find(item => item.time.totalMinutes > currentTime.totalMinutes);
+          if (nextButton) nextButton.btn.focus();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          const prevButton = sortedButtons.reverse().find(item => item.time.totalMinutes < currentTime.totalMinutes);
+          if (prevButton) prevButton.btn.focus();
+        }
+      }
+      return;
+    }
+    
+    // Up/Down arrow navigation for all focusable elements
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      const focusableElements = Array.from(
+        modalRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter(el => {
+        return el.offsetParent !== null && 
+               !el.disabled && 
+               !el.hasAttribute('aria-hidden') &&
+               window.getComputedStyle(el).visibility !== 'hidden';
+      });
+      
+      if (focusableElements.length === 0) return;
+      
+      const currentIndex = focusableElements.findIndex(
+        el => el === document.activeElement
+      );
+      
+      if (currentIndex === -1) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          focusableElements[0]?.focus();
+        }
+        return;
+      }
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextIndex = currentIndex < focusableElements.length - 1 
+          ? currentIndex + 1 
+          : 0;
+        focusableElements[nextIndex]?.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prevIndex = currentIndex > 0 
+          ? currentIndex - 1 
+          : focusableElements.length - 1;
+        focusableElements[prevIndex]?.focus();
       }
     }
   };
@@ -507,6 +728,13 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
           className="doctors-modal-close"
           onClick={onClose}
           aria-label="Close doctor selection modal"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onClose();
+            }
+          }}
         >
           ×
         </button>
@@ -518,6 +746,12 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
         <div className="date-navigation-bar">
           <button
             onClick={handlePreviousDay}
+            onKeyDown={(e) => {
+              if (canGoPrevious && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                handlePreviousDay();
+              }
+            }}
             className="date-nav-button"
             disabled={!canGoPrevious}
             aria-label="Previous day"
@@ -529,6 +763,12 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
           </div>
           <button
             onClick={handleNextDay}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleNextDay();
+              }
+            }}
             className="date-nav-button"
             aria-label="Next day"
           >
@@ -588,6 +828,12 @@ function DoctorScheduleCard({ doctor, onSlotClick }) {
               key={index}
               className="time-slot-button"
               onClick={() => onSlotClick(slot)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSlotClick(slot);
+                }
+              }}
             >
               <span className="time-text">{slot.time}</span>
               <span className="est-text"> EST</span>

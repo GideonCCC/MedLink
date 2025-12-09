@@ -294,6 +294,12 @@
   transform: scale(1.1);
 }
 
+.time-slot-nav-button:focus-visible,
+.time-slot-nav-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .time-slot-date-display {
   display: flex;
   flex-direction: column;
@@ -312,6 +318,13 @@
 }
 
 .time-slot-date-text:hover {
+  color: var(--color-success);
+}
+
+.time-slot-date-text:focus-visible,
+.time-slot-date-text:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
   color: var(--color-success);
 }
 
@@ -363,11 +376,25 @@
   box-shadow: 0 4px 8px rgba(0, 184, 148, 0.2);
 }
 
-.time-slot-item.booked {
+.time-slot-item:focus-visible,
+.time-slot-item:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.time-slot-item.available:focus-visible,
+.time-slot-item.available:focus {
+  border-color: var(--color-success);
+  background: #f0fdfb;
+}
+
+.time-slot-item.booked,
+.time-slot-item[aria-disabled="true"] {
   background: #f5f5f5;
   color: #999;
   cursor: not-allowed;
   border-color: #e0e0e0;
+  pointer-events: none;
 }
 
 .time-slot-item .booked-label {

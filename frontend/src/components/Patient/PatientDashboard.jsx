@@ -15,6 +15,93 @@ function PatientDashboard() {
     loadUpcomingAppointments();
   }, []);
 
+  // Arrow key and Enter key navigation for keyboard accessibility
+  useEffect(() => {
+    const handleKeyNavigation = (e) => {
+      // Don't interfere if a modal is open
+      if (cancelConfirm) return;
+
+      // Only handle if focus is within the content area (not sidebar)
+      const contentArea = document.querySelector('.patient-content');
+      if (!contentArea || !contentArea.contains(e.target)) {
+        return; // Don't handle if focus is in sidebar
+      }
+
+      const dashboardContainer = document.querySelector('.patient-dashboard');
+      if (!dashboardContainer) return;
+
+      const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const allFocusableElements = Array.from(
+        dashboardContainer.querySelectorAll(focusableSelectors)
+      ).filter(el => {
+        return el.offsetParent !== null && 
+               !el.disabled && 
+               !el.hasAttribute('aria-hidden') &&
+               window.getComputedStyle(el).visibility !== 'hidden' &&
+               !el.closest('.patient-sidebar') && // Exclude sidebar elements
+               !el.closest('.sidebar-nav'); // Exclude sidebar navigation
+      });
+
+      if (allFocusableElements.length === 0) return;
+
+      const currentIndex = allFocusableElements.findIndex(
+        el => el === document.activeElement
+      );
+
+      // Handle Enter key: move to next field/button (except for buttons/links where it should trigger action)
+      if (e.key === 'Enter') {
+        const currentElement = document.activeElement;
+        const isInput = currentElement.tagName === 'INPUT' || currentElement.tagName === 'SELECT' || currentElement.tagName === 'TEXTAREA';
+        
+        if (isInput && currentIndex !== -1) {
+          // In input fields, Enter moves to next field
+          e.preventDefault();
+          const nextIndex = currentIndex < allFocusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          allFocusableElements[nextIndex]?.focus();
+          return;
+        }
+        // For buttons and links, let default behavior handle it (trigger action)
+        return;
+      }
+
+      // Don't interfere if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        if (currentIndex === -1) {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            allFocusableElements[0]?.focus();
+          }
+          return;
+        }
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const nextIndex = currentIndex < allFocusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          allFocusableElements[nextIndex]?.focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 
+            ? currentIndex - 1 
+            : allFocusableElements.length - 1;
+          allFocusableElements[prevIndex]?.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyNavigation);
+    return () => {
+      document.removeEventListener('keydown', handleKeyNavigation);
+    };
+  }, [cancelConfirm]);
+
   async function loadUpcomingAppointments() {
     try {
       setLoading(true);
@@ -68,7 +155,17 @@ function PatientDashboard() {
         ) : upcomingAppointments.length === 0 ? (
           <div className="empty-state">
             <p>You don&apos;t have any upcoming appointments.</p>
-            <Link to="/patient/book-visit" className="link-button">
+            <Link 
+              to="/patient/book-visit" 
+              className="link-button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  window.location.href = '/patient/book-visit';
+                }
+              }}
+            >
               Book your first appointment
             </Link>
           </div>
@@ -133,12 +230,58 @@ function AppointmentCard({ appointment, onCancel }) {
         <Link
           to={`/patient/appointments/${appointment.id}/edit`}
           className="action-button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              // Navigate and focus on the edit page
+              window.location.href = `/patient/appointments/${appointment.id}/edit`;
+              // Focus will be handled by the edit page when it loads
+            }
+          }}
+          onClick={(e) => {
+            // On click, navigate - focus will be handled by the edit page
+            // Don't prevent default, let Link handle navigation
+          }}
         >
           Reschedule
         </Link>
         <button
-          onClick={() => onCancel(appointment.id)}
+          onClick={() => {
+            onCancel(appointment.id);
+            // Focus will be handled by the modal when it opens
+            setTimeout(() => {
+              const modal = document.querySelector('.modal-content');
+              if (modal) {
+                const firstFocusable = modal.querySelector(
+                  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                if (firstFocusable) {
+                  firstFocusable.focus();
+                }
+              }
+            }, 100);
+          }}
           className="cancel-appointment-button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onCancel(appointment.id);
+              // Focus on modal after it opens
+              setTimeout(() => {
+                const modal = document.querySelector('.modal-content');
+                if (modal) {
+                  const firstFocusable = modal.querySelector(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                  );
+                  if (firstFocusable) {
+                    firstFocusable.focus();
+                  }
+                }
+              }, 100);
+            }
+          }}
         >
           Cancel
         </button>
@@ -170,9 +313,18 @@ function CancelConfirmModal({ onConfirm, onDismiss }) {
     };
     document.addEventListener('keydown', handleEscape);
     document.body.style.overflow = 'hidden';
-    // Focus the modal when it opens
+    // Focus the first focusable element in the modal when it opens
     if (modalRef.current) {
-      modalRef.current.focus();
+      setTimeout(() => {
+        const firstFocusable = modalRef.current?.querySelector(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (firstFocusable) {
+          firstFocusable.focus();
+        } else {
+          modalRef.current.focus();
+        }
+      }, 50);
     }
     return () => {
       document.removeEventListener('keydown', handleEscape);
@@ -233,6 +385,13 @@ function CancelConfirmModal({ onConfirm, onDismiss }) {
             onClick={onDismiss}
             className="modal-cancel-button"
             aria-label="Keep appointment"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onDismiss();
+              }
+            }}
           >
             Keep
           </button>
@@ -240,6 +399,13 @@ function CancelConfirmModal({ onConfirm, onDismiss }) {
             onClick={onConfirm}
             className="modal-confirm-button"
             aria-label="Cancel appointment"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onConfirm();
+              }
+            }}
           >
             Cancel
           </button>

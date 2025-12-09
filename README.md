@@ -185,9 +185,15 @@ npm run preview
 
 ### Screenshot
 
-![MedLink Application Screenshot](submission/Screenshot%202025-11-10%20at%2011.16.24%20AM.png)
+![MedLink Application Screenshot](submission/ScreenShot.png)
 
 *Screenshot showing the MedLink home page with booking interface*
+
+### Usability Study Report
+
+📄 **Usability Study Report** is available in the `submission/` folder: [`submission/Usability Study Report_Shaobo(Ben).pdf`](submission/Usability%20Study%20Report_Shaobo(Ben).pdf)
+
+*This report contains detailed usability testing findings and recommendations for the MedLink application.*
 
 ---
 

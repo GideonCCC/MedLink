@@ -258,12 +258,93 @@ function DoctorsList() {
   selectedDateStart.setHours(0, 0, 0, 0);
   const canGoPrevious = selectedDateStart.getTime() > today.getTime();
 
+  // Arrow key navigation for keyboard accessibility
+  useEffect(() => {
+    const handleArrowKeyNavigation = (e) => {
+      // Don't interfere if user is typing in an input
+      if (e.target.tagName === 'INPUT' && e.target.type === 'text' && !e.target.readOnly) {
+        return;
+      }
+      
+      const currentButton = document.activeElement;
+      
+      // If focus is on a time slot button, let the button handle it
+      if (currentButton && currentButton.classList.contains('time-slot-button')) {
+        return; // Let button's onKeyDown handle it
+      }
+      
+      // Up/Down arrow for all focusable elements (including time slot buttons)
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        const pageContainer = document.querySelector('.doctors-list-page');
+        if (!pageContainer) return;
+        
+        const allFocusableElements = Array.from(
+          pageContainer.querySelectorAll(focusableSelectors)
+        ).filter(el => {
+          return el.offsetParent !== null && 
+                 !el.disabled && 
+                 !el.hasAttribute('aria-hidden') &&
+                 window.getComputedStyle(el).visibility !== 'hidden';
+        });
+        
+        if (allFocusableElements.length === 0) return;
+        
+        const currentIndex = allFocusableElements.findIndex(
+          el => el === document.activeElement
+        );
+        
+        if (currentIndex === -1) {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            allFocusableElements[0]?.focus();
+          }
+          return;
+        }
+        
+        // If currently on a time slot button, let the button handle it
+        if (currentButton && currentButton.classList.contains('time-slot-button')) {
+          return; // Let button's onKeyDown handle it
+        }
+        
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const nextIndex = currentIndex < allFocusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          allFocusableElements[nextIndex]?.focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 
+            ? currentIndex - 1 
+            : allFocusableElements.length - 1;
+          allFocusableElements[prevIndex]?.focus();
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleArrowKeyNavigation);
+    return () => {
+      document.removeEventListener('keydown', handleArrowKeyNavigation);
+    };
+  }, []);
+
   return (
     <div className="doctors-list-page">
       {/* Top Header with Brand and Close */}
       <header className="doctors-page-header" role="banner">
         <h1 className="page-brand">MedLink</h1>
-        <button onClick={() => navigate('/')} className="close-button">
+        <button 
+          onClick={() => navigate('/')} 
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              navigate('/');
+            }
+          }}
+          className="close-button"
+        >
           ×
         </button>
       </header>
@@ -275,6 +356,13 @@ function DoctorsList() {
         <div className="date-navigation-bar">
           <button
             onClick={handlePreviousDay}
+            tabIndex={canGoPrevious ? 0 : -1}
+            onKeyDown={(e) => {
+              if (canGoPrevious && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                handlePreviousDay();
+              }
+            }}
             className="date-nav-button"
             disabled={!canGoPrevious}
             aria-label="Previous day"
@@ -286,6 +374,13 @@ function DoctorsList() {
           </div>
           <button
             onClick={handleNextDay}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleNextDay();
+              }
+            }}
             className="date-nav-button"
             aria-label="Next day"
           >
@@ -357,6 +452,218 @@ function DoctorScheduleCard({ doctor, onSlotClick }) {
               key={index}
               className="time-slot-button"
               onClick={() => onSlotClick(slot)}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                // Handle arrow keys directly on the button
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  const pageContainer = document.querySelector('.doctors-list-page');
+                  if (!pageContainer) return;
+                  
+                  // Get all doctor cards
+                  const doctorCards = Array.from(pageContainer.querySelectorAll('.doctor-schedule-card'));
+                  
+                  // Find which doctor card this button belongs to
+                  const currentCard = e.target.closest('.doctor-schedule-card');
+                  if (!currentCard) return;
+                  
+                  const currentCardIndex = doctorCards.indexOf(currentCard);
+                  
+                  // Get all time slot buttons in current doctor's card
+                  const currentCardButtons = Array.from(
+                    currentCard.querySelectorAll('.time-slot-button')
+                  ).filter(btn => {
+                    return btn.offsetParent !== null && 
+                           !btn.disabled &&
+                           btn.getAttribute('tabindex') !== '-1';
+                  });
+                  
+                  // Get all time slot buttons across all cards
+                  const allTimeSlotButtons = Array.from(
+                    pageContainer.querySelectorAll('.time-slot-button')
+                  ).filter(btn => {
+                    return btn.offsetParent !== null && 
+                           !btn.disabled &&
+                           btn.getAttribute('tabindex') !== '-1';
+                  });
+                  
+                  if (allTimeSlotButtons.length === 0) return;
+                  
+                  const currentIndex = currentCardButtons.findIndex(btn => btn === e.target);
+                  if (currentIndex === -1) return;
+                  
+                  // Calculate grid layout (4 columns per row based on CSS)
+                  const columnsPerRow = 4;
+                  const currentRow = Math.floor(currentIndex / columnsPerRow);
+                  const totalRows = Math.ceil(currentCardButtons.length / columnsPerRow);
+                  const isFirstRow = currentRow === 0;
+                  const isLastRow = currentRow === totalRows - 1;
+                  const isFirstDoctor = currentCardIndex === 0;
+                  const isLastDoctor = currentCardIndex === doctorCards.length - 1;
+                  
+                  // Parse time helper
+                  const parseTime = (timeStr) => {
+                    const cleanStr = timeStr.replace(/EST/gi, '').trim();
+                    const match = cleanStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+                    if (!match) return null;
+                    let hours = parseInt(match[1], 10);
+                    const minutes = parseInt(match[2], 10);
+                    const period = match[3]?.toUpperCase();
+                    
+                    if (period === 'PM' && hours !== 12) hours += 12;
+                    if (period === 'AM' && hours === 12) hours = 0;
+                    
+                    return { hours, minutes, totalMinutes: hours * 60 + minutes };
+                  };
+                  
+                  const currentTimeText = e.target.textContent.trim();
+                  const currentTime = parseTime(currentTimeText);
+                  
+                  // Handle Up arrow
+                  if (e.key === 'ArrowUp') {
+                    if (isFirstRow) {
+                      // First row: navigate to previous doctor's last row or date navigation
+                      if (isFirstDoctor) {
+                        // First doctor's first row: go to date navigation
+                        const dateNavButtons = pageContainer.querySelectorAll('.date-nav-button');
+                        const prevDateButton = Array.from(dateNavButtons).find(btn => 
+                          btn.getAttribute('aria-label') === 'Previous day' && !btn.disabled
+                        );
+                        if (prevDateButton) {
+                          prevDateButton.focus();
+                        } else {
+                          // If previous day button is disabled, focus on next day button
+                          const nextDateButton = Array.from(dateNavButtons).find(btn => 
+                            btn.getAttribute('aria-label') === 'Next day'
+                          );
+                          nextDateButton?.focus();
+                        }
+                      } else {
+                        // Navigate to previous doctor's last row
+                        const prevCard = doctorCards[currentCardIndex - 1];
+                        const prevCardButtons = Array.from(
+                          prevCard.querySelectorAll('.time-slot-button')
+                        ).filter(btn => {
+                          return btn.offsetParent !== null && 
+                                 !btn.disabled &&
+                                 btn.getAttribute('tabindex') !== '-1';
+                        });
+                        if (prevCardButtons.length > 0) {
+                          const prevCardLastRowStart = Math.floor((prevCardButtons.length - 1) / columnsPerRow) * columnsPerRow;
+                          const targetCol = currentIndex % columnsPerRow;
+                          const targetIndex = Math.min(prevCardLastRowStart + targetCol, prevCardButtons.length - 1);
+                          prevCardButtons[targetIndex]?.focus();
+                        }
+                      }
+                    } else {
+                      // Not first row: navigate within same doctor (same column, previous row)
+                      const targetIndex = (currentRow - 1) * columnsPerRow + (currentIndex % columnsPerRow);
+                      if (targetIndex >= 0 && targetIndex < currentCardButtons.length) {
+                        currentCardButtons[targetIndex].focus();
+                      }
+                    }
+                    return;
+                  }
+                  
+                  // Handle Down arrow
+                  if (e.key === 'ArrowDown') {
+                    const nextRowIndex = (currentRow + 1) * columnsPerRow + (currentIndex % columnsPerRow);
+                    if (nextRowIndex < currentCardButtons.length) {
+                      // Next row exists in same doctor
+                      currentCardButtons[nextRowIndex].focus();
+                    } else if (isLastRow && !isLastDoctor) {
+                      // Last row: navigate to next doctor's first row
+                      const nextCard = doctorCards[currentCardIndex + 1];
+                      const nextCardButtons = Array.from(
+                        nextCard.querySelectorAll('.time-slot-button')
+                      ).filter(btn => {
+                        return btn.offsetParent !== null && 
+                               !btn.disabled &&
+                               btn.getAttribute('tabindex') !== '-1';
+                      });
+                      if (nextCardButtons.length > 0) {
+                        const targetCol = currentIndex % columnsPerRow;
+                        const targetIndex = Math.min(targetCol, nextCardButtons.length - 1);
+                        nextCardButtons[targetIndex]?.focus();
+                      }
+                    }
+                    return;
+                  }
+                  
+                  // Handle Left/Right arrows
+                  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    if (!currentTime) {
+                      // Fallback to simple index navigation
+                      if (e.key === 'ArrowRight') {
+                        const nextIndex = currentIndex < currentCardButtons.length - 1 ? currentIndex + 1 : 0;
+                        currentCardButtons[nextIndex]?.focus();
+                      } else if (e.key === 'ArrowLeft') {
+                        const prevIndex = currentIndex > 0 ? currentIndex - 1 : currentCardButtons.length - 1;
+                        currentCardButtons[prevIndex]?.focus();
+                      }
+                      return;
+                    }
+                    
+                    // Calculate target time
+                    let targetMinutes = currentTime.totalMinutes;
+                    if (e.key === 'ArrowRight') {
+                      targetMinutes += 30;
+                    } else if (e.key === 'ArrowLeft') {
+                      targetMinutes -= 30;
+                    }
+                    
+                    // First try to find in same doctor's card
+                    let targetButton = currentCardButtons.find(btn => {
+                      const btnTimeText = btn.textContent.trim();
+                      const btnTime = parseTime(btnTimeText);
+                      return btnTime && btnTime.totalMinutes === targetMinutes;
+                    });
+                    
+                    // If not found in same card, try all cards
+                    if (!targetButton) {
+                      targetButton = allTimeSlotButtons.find(btn => {
+                        const btnTimeText = btn.textContent.trim();
+                        const btnTime = parseTime(btnTimeText);
+                        return btnTime && btnTime.totalMinutes === targetMinutes;
+                      });
+                    }
+                    
+                    if (targetButton && targetButton !== e.target) {
+                      targetButton.focus();
+                    } else {
+                      // If no matching time found, navigate to date navigation buttons
+                      const dateNavButtons = pageContainer.querySelectorAll('.date-nav-button');
+                      if (e.key === 'ArrowRight') {
+                        const nextDateButton = Array.from(dateNavButtons).find(btn => 
+                          btn.getAttribute('aria-label') === 'Next day'
+                        );
+                        nextDateButton?.focus();
+                      } else if (e.key === 'ArrowLeft') {
+                        const prevDateButton = Array.from(dateNavButtons).find(btn => 
+                          btn.getAttribute('aria-label') === 'Previous day' && !btn.disabled
+                        );
+                        if (prevDateButton) {
+                          prevDateButton.focus();
+                        } else {
+                          // If previous day button is disabled, focus on next day button
+                          const nextDateButton = Array.from(dateNavButtons).find(btn => 
+                            btn.getAttribute('aria-label') === 'Next day'
+                          );
+                          nextDateButton?.focus();
+                        }
+                      }
+                    }
+                    return;
+                  }
+                }
+                
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSlotClick(slot);
+                }
+              }}
             >
               <span className="time-text">{slot.time}</span>
               <span className="est-text"> EST</span>

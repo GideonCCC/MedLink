@@ -57,7 +57,17 @@ function Navbar() {
               </button>
             </>
           ) : (
-            <button onClick={() => navigate('/login')} className="navbar-login">
+            <button 
+              onClick={() => navigate('/login')} 
+              className="navbar-login"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate('/login');
+                }
+              }}
+              tabIndex={0}
+            >
               Sign In
             </button>
           )}

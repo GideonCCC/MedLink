@@ -127,6 +127,22 @@ function AppointmentForm() {
         });
       }
     }
+    
+    // Focus on the first focusable element when page loads (for reschedule/edit)
+    // Wait for form to be ready
+    const focusTimer = setTimeout(() => {
+      const formContainer = document.querySelector('.appointment-form');
+      if (formContainer) {
+        const firstFocusable = formContainer.querySelector(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (firstFocusable) {
+          firstFocusable.focus();
+        }
+      }
+    }, 300);
+    
+    return () => clearTimeout(focusTimer);
   }, [
     isEdit,
     loadAppointment,
@@ -403,6 +419,93 @@ function AppointmentForm() {
     }
   }, [selectedDate, showTimeSlotModal, formData.doctorId, loadDoctorSlots]);
 
+  // Arrow key and Enter key navigation for keyboard accessibility (only when modal is not open)
+  useEffect(() => {
+    const handleKeyNavigation = (e) => {
+      // Don't interfere if modal is open
+      if (showTimeSlotModal) return;
+
+      // Only handle if focus is within the content area (not sidebar)
+      const contentArea = document.querySelector('.patient-content');
+      if (!contentArea || !contentArea.contains(e.target)) {
+        return; // Don't handle if focus is in sidebar
+      }
+
+      const formContainer = document.querySelector('.appointment-form');
+      if (!formContainer) return;
+
+      const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const allFocusableElements = Array.from(
+        formContainer.querySelectorAll(focusableSelectors)
+      ).filter(el => {
+        return el.offsetParent !== null && 
+               !el.disabled && 
+               !el.hasAttribute('aria-hidden') &&
+               window.getComputedStyle(el).visibility !== 'hidden' &&
+               !el.closest('.patient-sidebar') && // Exclude sidebar elements
+               !el.closest('.sidebar-nav'); // Exclude sidebar navigation
+      });
+
+      if (allFocusableElements.length === 0) return;
+
+      const currentIndex = allFocusableElements.findIndex(
+        el => el === document.activeElement
+      );
+
+      // Handle Enter key: move to next field/button (except for buttons where it should trigger action)
+      if (e.key === 'Enter') {
+        const currentElement = document.activeElement;
+        const isInput = currentElement.tagName === 'INPUT' || currentElement.tagName === 'SELECT' || currentElement.tagName === 'TEXTAREA';
+        
+        if (isInput && currentIndex !== -1) {
+          // In input fields, Enter moves to next field
+          e.preventDefault();
+          const nextIndex = currentIndex < allFocusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          allFocusableElements[nextIndex]?.focus();
+          return;
+        }
+        // For buttons and links, let default behavior handle it (trigger action)
+        return;
+      }
+
+      // Don't interfere if user is typing in an input, select, or textarea (for arrow keys)
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        if (currentIndex === -1) {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            allFocusableElements[0]?.focus();
+          }
+          return;
+        }
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const nextIndex = currentIndex < allFocusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          allFocusableElements[nextIndex]?.focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 
+            ? currentIndex - 1 
+            : allFocusableElements.length - 1;
+          allFocusableElements[prevIndex]?.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyNavigation);
+    return () => {
+      document.removeEventListener('keydown', handleKeyNavigation);
+    };
+  }, [showTimeSlotModal]);
+
   // Validate appointment changes
   async function validateAppointmentChanges() {
     const errors = [];
@@ -513,7 +616,7 @@ function AppointmentForm() {
         });
       }
 
-      navigate('/patient/dashboard');
+      navigate('/patient/dashboard', { state: { fromBooking: true } });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -617,6 +720,13 @@ function AppointmentForm() {
                   type="button"
                   onClick={handleOpenTimeSlotModal}
                   className="select-time-button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleOpenTimeSlotModal();
+                    }
+                  }}
                 >
                   Select New Time Slot
                 </button>
@@ -678,6 +788,13 @@ function AppointmentForm() {
               type="button"
               onClick={() => navigate('/patient/dashboard')}
               className="cancel-button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate('/patient/dashboard');
+                }
+              }}
             >
               Cancel
             </button>
@@ -685,6 +802,17 @@ function AppointmentForm() {
               type="submit"
               className="submit-button"
               disabled={submitting}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === ' ') {
+                  e.preventDefault();
+                  const form = e.target.closest('form');
+                  if (form) {
+                    const formEvent = new Event('submit', { bubbles: true, cancelable: true });
+                    form.dispatchEvent(formEvent);
+                  }
+                }
+              }}
             >
               {submitting
                 ? 'Saving...'
@@ -733,14 +861,31 @@ function TimeSlotModal({
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-    // Focus the modal when it opens
+    // Focus the first focusable element in the modal when it opens
+    // Prefer focusing on a time slot button if available, otherwise focus on date nav
     if (modalRef.current) {
-      modalRef.current.focus();
+      setTimeout(() => {
+        // First try to focus on a time slot button
+        const timeSlotButtons = modalRef.current?.querySelectorAll('.time-slot-item[tabindex="0"]');
+        if (timeSlotButtons && timeSlotButtons.length > 0) {
+          timeSlotButtons[0].focus();
+        } else {
+          // Otherwise focus on the first focusable element (close button or date nav)
+          const firstFocusable = modalRef.current?.querySelector(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          if (firstFocusable) {
+            firstFocusable.focus();
+          } else {
+            modalRef.current.focus();
+          }
+        }
+      }, 100);
     }
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [slots]);
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -756,7 +901,7 @@ function TimeSlotModal({
   }, [onClose]);
 
   const handleKeyDown = (e) => {
-    // Trap focus within modal
+    // Trap focus within modal - only for Tab key
     if (e.key === 'Tab') {
       const focusableElements = modalRef.current?.querySelectorAll(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -777,7 +922,100 @@ function TimeSlotModal({
           }
         }
       }
+      return;
     }
+    
+    // Handle Enter key: move to next field/button (except for buttons where it should trigger action)
+    if (e.key === 'Enter') {
+      const currentElement = document.activeElement;
+      const isInput = currentElement.tagName === 'INPUT' || currentElement.tagName === 'SELECT' || currentElement.tagName === 'TEXTAREA';
+      
+      if (isInput) {
+        const focusableElements = Array.from(
+          modalRef.current?.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          ) || []
+        ).filter(el => {
+          return el.offsetParent !== null && 
+                 !el.disabled && 
+                 !el.hasAttribute('aria-hidden') &&
+                 window.getComputedStyle(el).visibility !== 'hidden';
+        });
+
+        const currentIndex = focusableElements.findIndex(
+          el => el === document.activeElement
+        );
+
+        if (currentIndex !== -1) {
+          e.preventDefault();
+          const nextIndex = currentIndex < focusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          focusableElements[nextIndex]?.focus();
+          return;
+        }
+      }
+      // For buttons, let default behavior handle it (trigger action)
+      return;
+    }
+    
+      // Handle arrow keys for navigation
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        const currentButton = document.activeElement;
+        // If focus is on a time slot button, let button's onKeyDown handle it
+        if (currentButton && currentButton.classList.contains('time-slot-item')) {
+          return; // Let button's onKeyDown handle it
+        }
+        
+        // For other buttons (close, date nav, etc.), navigate between them
+        // But also allow navigation TO time slot buttons
+        const allFocusableElements = Array.from(
+          modalRef.current?.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          ) || []
+        ).filter(el => {
+          return el.offsetParent !== null && 
+                 !el.disabled && 
+                 !el.hasAttribute('aria-hidden') &&
+                 window.getComputedStyle(el).visibility !== 'hidden' &&
+                 el.getAttribute('tabindex') !== '-1' &&
+                 el.getAttribute('aria-disabled') !== 'true';
+        });
+
+        if (allFocusableElements.length === 0) return;
+
+        const currentIndex = allFocusableElements.findIndex(
+          el => el === document.activeElement
+        );
+
+        if (currentIndex === -1) {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            // Try to focus on first time slot button if available, otherwise first element
+            const firstTimeSlot = allFocusableElements.find(el => el.classList.contains('time-slot-item'));
+            if (firstTimeSlot) {
+              firstTimeSlot.focus();
+            } else {
+              allFocusableElements[0]?.focus();
+            }
+          }
+          return;
+        }
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const nextIndex = currentIndex < allFocusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          allFocusableElements[nextIndex]?.focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 
+            ? currentIndex - 1 
+            : allFocusableElements.length - 1;
+          allFocusableElements[prevIndex]?.focus();
+        }
+      }
   };
 
   return createPortal(
@@ -800,6 +1038,13 @@ function TimeSlotModal({
         <button
           className="time-slot-modal-close"
           onClick={onClose}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onClose();
+            }
+          }}
           aria-label="Close time slot selection"
         >
           ×
@@ -816,13 +1061,30 @@ function TimeSlotModal({
         <div className="time-slot-date-navigation">
           <button
             onClick={onPreviousDay}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onPreviousDay();
+              }
+            }}
             className="time-slot-nav-button"
             aria-label="Previous day"
           >
             ←
           </button>
           <div className="time-slot-date-display">
-            <button onClick={onToday} className="time-slot-date-text">
+            <button 
+              onClick={onToday}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onToday();
+                }
+              }}
+              className="time-slot-date-text"
+            >
               {formatDate(selectedDate)}
             </button>
             <span className="time-slot-date-full">
@@ -847,6 +1109,13 @@ function TimeSlotModal({
           </div>
           <button
             onClick={onNextDay}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onNextDay();
+              }
+            }}
             className="time-slot-nav-button"
             aria-label="Next day"
           >
@@ -867,8 +1136,132 @@ function TimeSlotModal({
                 <button
                   key={index}
                   className={`time-slot-item ${slot.available ? 'available' : 'booked'}`}
-                  onClick={() => onSlotSelect(slot)}
-                  disabled={!slot.available}
+                  onClick={() => {
+                    if (slot.available) {
+                      onSlotSelect(slot);
+                    }
+                  }}
+                  tabIndex={slot.available ? 0 : -1}
+                  aria-disabled={!slot.available}
+                  onKeyDown={(e) => {
+                    // Handle arrow keys directly on the button
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      // Get all time slot buttons in the grid
+                      const timeSlotGrid = e.target.closest('.time-slot-grid');
+                      if (!timeSlotGrid) return;
+                      
+                      const allButtons = Array.from(
+                        timeSlotGrid.querySelectorAll('.time-slot-item')
+                      );
+                      
+                      const timeSlotButtons = allButtons.filter(btn => {
+                        return btn.offsetParent !== null && 
+                               btn.getAttribute('tabindex') !== '-1' &&
+                               btn.getAttribute('aria-disabled') !== 'true';
+                      });
+                      
+                      if (timeSlotButtons.length === 0) return;
+                      
+                      const currentIndex = timeSlotButtons.findIndex(btn => btn === e.target);
+                      if (currentIndex === -1) {
+                        // If current button not found, focus first available
+                        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                          timeSlotButtons[0]?.focus();
+                        }
+                        return;
+                      }
+                      
+                      // Parse time helper
+                      const parseTime = (timeStr) => {
+                        const cleanStr = timeStr.replace(/Booked/gi, '').trim();
+                        const match = cleanStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+                        if (!match) return null;
+                        let hours = parseInt(match[1], 10);
+                        const minutes = parseInt(match[2], 10);
+                        const period = match[3]?.toUpperCase();
+                        
+                        if (period === 'PM' && hours !== 12) hours += 12;
+                        if (period === 'AM' && hours === 12) hours = 0;
+                        
+                        return { hours, minutes, totalMinutes: hours * 60 + minutes };
+                      };
+                      
+                      const currentTimeText = e.target.textContent.trim();
+                      const currentTime = parseTime(currentTimeText);
+                      
+                      let targetButton = null;
+                      
+                      // Try time-based navigation first
+                      if (currentTime) {
+                        let targetMinutes = currentTime.totalMinutes;
+                        if (e.key === 'ArrowRight') {
+                          targetMinutes += 30;
+                        } else if (e.key === 'ArrowLeft') {
+                          targetMinutes -= 30;
+                        } else if (e.key === 'ArrowDown') {
+                          targetMinutes += 120;
+                        } else if (e.key === 'ArrowUp') {
+                          targetMinutes -= 120;
+                        }
+                        
+                        targetButton = timeSlotButtons.find(btn => {
+                          const btnTimeText = btn.textContent.trim();
+                          const btnTime = parseTime(btnTimeText);
+                          return btnTime && btnTime.totalMinutes === targetMinutes;
+                        });
+                      }
+                      
+                      // Fallback to grid-based navigation
+                      if (!targetButton || targetButton === e.target) {
+                        const gridRect = timeSlotGrid.getBoundingClientRect();
+                        const firstRowButtons = timeSlotButtons.filter(btn => {
+                          const btnRect = btn.getBoundingClientRect();
+                          return Math.abs(btnRect.top - gridRect.top) < 20;
+                        });
+                        const columnsPerRow = firstRowButtons.length || 4;
+                        const currentRow = Math.floor(currentIndex / columnsPerRow);
+                        const currentCol = currentIndex % columnsPerRow;
+                        
+                        if (e.key === 'ArrowRight') {
+                          if (currentCol < columnsPerRow - 1) {
+                            const nextIndex = currentIndex + 1;
+                            if (nextIndex < timeSlotButtons.length) {
+                              targetButton = timeSlotButtons[nextIndex];
+                            }
+                          }
+                        } else if (e.key === 'ArrowLeft') {
+                          if (currentCol > 0) {
+                            targetButton = timeSlotButtons[currentIndex - 1];
+                          }
+                        } else if (e.key === 'ArrowDown') {
+                          const nextRowIndex = (currentRow + 1) * columnsPerRow + currentCol;
+                          if (nextRowIndex < timeSlotButtons.length) {
+                            targetButton = timeSlotButtons[nextRowIndex];
+                          }
+                        } else if (e.key === 'ArrowUp') {
+                          if (currentRow > 0) {
+                            const prevRowIndex = (currentRow - 1) * columnsPerRow + currentCol;
+                            if (prevRowIndex >= 0) {
+                              targetButton = timeSlotButtons[prevRowIndex];
+                            }
+                          }
+                        }
+                      }
+                      
+                      if (targetButton && targetButton !== e.target) {
+                        targetButton.focus();
+                      }
+                      return;
+                    }
+                    
+                    if (slot.available && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      onSlotSelect(slot);
+                    }
+                  }}
                 >
                   {slot.time}
                   {!slot.available && (

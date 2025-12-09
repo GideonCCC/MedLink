@@ -47,6 +47,85 @@ export default function PastAppointments() {
     loadAppointments();
   }, [loadAppointments]);
 
+  // Keyboard navigation for search and cards
+  useEffect(() => {
+    const handleArrowKeyNavigation = (e) => {
+      // Don't interfere with input fields, selects, or textareas when typing
+      if (
+        (e.target.tagName === 'INPUT' ||
+         e.target.tagName === 'SELECT' ||
+         e.target.tagName === 'TEXTAREA') &&
+        e.key !== 'Enter'
+      ) {
+        return;
+      }
+
+      // Enter in search input: move to first card
+      if (e.key === 'Enter' && e.target.id === 'past-appointments-search-input') {
+        e.preventDefault();
+        const firstCard = document.querySelector('.appointment-card');
+        if (firstCard) {
+          firstCard.focus();
+        }
+        return;
+      }
+
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        // Only handle if focus is within the content area (not sidebar)
+        const contentArea = document.querySelector('.doctor-content');
+        if (!contentArea || !contentArea.contains(e.target)) {
+          return; // Don't handle if focus is in sidebar
+        }
+
+        const allFocusableElements = Array.from(
+          contentArea.querySelectorAll(
+            '.search-input, .appointment-card, button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter(el => {
+          return el.offsetParent !== null && 
+                 !el.disabled && 
+                 !el.hasAttribute('aria-hidden') &&
+                 window.getComputedStyle(el).visibility !== 'hidden' &&
+                 !el.closest('.doctor-menu-bar') && // Exclude sidebar elements
+                 !el.closest('.sidebar-nav'); // Exclude sidebar navigation
+        });
+
+        if (allFocusableElements.length === 0) return;
+
+        const currentIndex = allFocusableElements.findIndex(
+          el => el === document.activeElement
+        );
+
+        if (currentIndex === -1) {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            allFocusableElements[0]?.focus();
+          }
+          return;
+        }
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const nextIndex = currentIndex < allFocusableElements.length - 1 
+            ? currentIndex + 1 
+            : 0;
+          allFocusableElements[nextIndex]?.focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 
+            ? currentIndex - 1 
+            : allFocusableElements.length - 1;
+          allFocusableElements[prevIndex]?.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleArrowKeyNavigation);
+    return () => {
+      document.removeEventListener('keydown', handleArrowKeyNavigation);
+    };
+  }, [appointments]);
+
   return (
     <div className="past-appointments">
       <div className="info-container">
@@ -85,10 +164,11 @@ export default function PastAppointments() {
             )}
             <div className="appointments-grid">
               {appointments.map((appointment) => (
-                <PastAppointmentCard
-                  key={appointment._id}
-                  appointment={appointment}
-                />
+                <div key={appointment._id} tabIndex={0}>
+                  <PastAppointmentCard
+                    appointment={appointment}
+                  />
+                </div>
               ))}
             </div>
           </>

@@ -104,6 +104,13 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.appointment-card:focus-visible,
+div[tabindex="0"]:focus-visible .appointment-card {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+
 .appointment-header {
   display: flex;
   justify-content: space-between;
