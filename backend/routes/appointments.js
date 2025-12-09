@@ -26,6 +26,15 @@ router.post('/', requireAuth, requireRole('patient'), async (req, res) => {
     if (start < oneHourFromNow) {
       return res.status(400).json({ error: 'Appointments must be booked at least 1 hour in advance' });
     }
+    else if (start < new Date()) {
+      return res.status(400).json({ error: 'Cannot book appointments in the past' });
+    }
+    else if (start > end) {
+      return res.status(400).json({ error: 'End time must be after start time' });
+    }
+    else if (end - start !== 30 * 60 * 1000) {
+      return res.status(400).json({ error: 'Appointment must be 30 minutes long' });
+    }
 
     // Check if doctor exists
     let doctorObjectId;
