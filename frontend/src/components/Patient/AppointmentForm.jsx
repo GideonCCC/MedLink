@@ -19,17 +19,31 @@ function AppointmentForm() {
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [originalAppointment, setOriginalAppointment] = useState(null);
-  // Initialize selectedDate with clinic timezone date to avoid date offset issues
-  const getClinicDate = () => {
+  // Helper to get current date string in clinic timezone
+  const getClinicDateString = () => {
     const now = new Date();
-    const estDateStr = now.toLocaleDateString('en-US', {
+    return now.toLocaleDateString('en-CA', {
       timeZone: 'America/New_York',
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
     });
-    const [month, day, year] = estDateStr.split('/');
-    return new Date(year, month - 1, day);
+  };
+
+  // Helper to convert EST date string (YYYY-MM-DD) to a Date object that represents that date in EST
+  const estDateStringToDate = (dateStr) => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    // Create date at noon EST by using UTC offset
+    // EST is UTC-5, so noon EST = 17:00 UTC
+    // But we need to account for DST - EDT is UTC-4, so noon EDT = 16:00 UTC
+    // To be safe, let's use 18:00 UTC which is definitely in the afternoon in EST/EDT
+    return new Date(Date.UTC(year, month - 1, day, 18, 0, 0));
+  };
+
+  // Initialize selectedDate with clinic timezone date to avoid date offset issues
+  const getClinicDate = () => {
+    const estDateStr = getClinicDateString();
+    return estDateStringToDate(estDateStr);
   };
   
   const [selectedDate, setSelectedDate] = useState(getClinicDate());
@@ -196,9 +210,11 @@ function AppointmentForm() {
         month: '2-digit',
         day: '2-digit',
       }); // Returns YYYY-MM-DD format
+      
       const data = await apiClient(
         `/api/doctors/${formData.doctorId}/availability?date=${dateStr}`
       );
+      
       // Filter out past time slots on client side as additional safety measure
       const now = new Date();
       const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
@@ -208,6 +224,31 @@ function AppointmentForm() {
         const slotStart = new Date(slot.start);
         return slotStart.getTime() > oneHourFromNow.getTime();
       });
+      
+      // Check if we have slots, and if so, check what date they're actually for
+      // The API might return slots for a different date than requested if today is too late
+      if (filteredSlots.length > 0) {
+        const firstSlot = filteredSlots[0];
+        const slotStart = new Date(firstSlot.start);
+        // Get the date of the first slot in clinic timezone
+        const slotDateStr = slotStart.toLocaleDateString('en-CA', {
+          timeZone: 'America/New_York',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        });
+        
+        // If the slot date is different from what we requested, update selectedDate
+        if (slotDateStr !== dateStr) {
+          console.log('Updating selectedDate from', dateStr, 'to', slotDateStr);
+          const newSelectedDate = estDateStringToDate(slotDateStr);
+          setSelectedDate(newSelectedDate);
+          // Also update slots to ensure they're set after the date update
+          setSlots(filteredSlots);
+          return; // Return early to avoid setting slots twice
+        }
+      }
+      
       setSlots(filteredSlots);
     } catch (err) {
       setError(err.message);
@@ -221,6 +262,8 @@ function AppointmentForm() {
       setError('Please select a doctor first');
       return;
     }
+    // Refresh the selected date to ensure it's current in EST
+    setSelectedDate(getClinicDate());
     setShowTimeSlotModal(true);
     loadDoctorSlots();
   }
@@ -259,23 +302,47 @@ function AppointmentForm() {
   }
 
   function formatDate(date) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dateToCheck = new Date(date);
-    dateToCheck.setHours(0, 0, 0, 0);
+    // Always get the date string in clinic timezone first to ensure consistency
+    const dateStr = date.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    
+    // Get today's date in clinic timezone
+    const now = new Date();
+    const todayStr = now.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
 
-    if (dateToCheck.getTime() === today.getTime()) {
+    if (dateStr === todayStr) {
       return 'Today';
     }
 
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    if (dateToCheck.getTime() === tomorrow.getTime()) {
+    // Calculate tomorrow by adding 1 day to today
+    const [todayYear, todayMonth, todayDay] = todayStr.split('-').map(Number);
+    const tomorrowDate = new Date(Date.UTC(todayYear, todayMonth - 1, todayDay + 1, 12, 0, 0));
+    const tomorrowStr = tomorrowDate.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+
+    if (dateStr === tomorrowStr) {
       return 'Tomorrow';
     }
 
+    // Use the date string to create a display date to ensure consistency
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const displayDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+    
     // Use clinic timezone for consistent date display
-    return date.toLocaleDateString('en-US', {
+    return displayDate.toLocaleDateString('en-US', {
       timeZone: 'America/New_York',
       weekday: 'long',
       month: 'long',
@@ -284,19 +351,50 @@ function AppointmentForm() {
   }
 
   function handlePreviousDay() {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() - 1);
-    setSelectedDate(newDate);
+    // Get current date in clinic timezone, subtract one day
+    const currentDateStr = selectedDate.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const [year, month, day] = currentDateStr.split('-').map(Number);
+    // Create a date for the previous day using UTC to avoid timezone issues
+    const prevDate = new Date(Date.UTC(year, month - 1, day - 1, 18, 0, 0));
+    // Verify it's the correct date in EST
+    const prevDateStr = prevDate.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    setSelectedDate(estDateStringToDate(prevDateStr));
   }
 
   function handleNextDay() {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + 1);
-    setSelectedDate(newDate);
+    // Get current date in clinic timezone, add one day
+    const currentDateStr = selectedDate.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const [year, month, day] = currentDateStr.split('-').map(Number);
+    // Create a date for the next day using UTC to avoid timezone issues
+    const nextDate = new Date(Date.UTC(year, month - 1, day + 1, 18, 0, 0));
+    // Verify it's the correct date in EST
+    const nextDateStr = nextDate.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    setSelectedDate(estDateStringToDate(nextDateStr));
   }
 
   function handleToday() {
-    setSelectedDate(new Date());
+    // Set to today's date in clinic timezone
+    setSelectedDate(getClinicDate());
   }
 
   useEffect(() => {
@@ -728,11 +826,23 @@ function TimeSlotModal({
               {formatDate(selectedDate)}
             </button>
             <span className="time-slot-date-full">
-              {selectedDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
+              {/* Use the same date string that's sent to the API for consistency */}
+              {(() => {
+                const dateStr = selectedDate.toLocaleDateString('en-CA', {
+                  timeZone: 'America/New_York',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                });
+                const [y, m, d] = dateStr.split('-').map(Number);
+                const displayDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+                return displayDate.toLocaleDateString('en-US', {
+                  timeZone: 'America/New_York',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                });
+              })()}
             </span>
           </div>
           <button

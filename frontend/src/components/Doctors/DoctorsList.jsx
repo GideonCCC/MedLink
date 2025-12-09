@@ -23,7 +23,30 @@ function DoctorsList() {
   const service = searchParams.get('service');
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  // Helper to get current date string in clinic timezone
+  const getClinicDateString = () => {
+    const now = new Date();
+    return now.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+
+  // Helper to convert EST date string (YYYY-MM-DD) to a Date object
+  const estDateStringToDate = (dateStr) => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(year, month - 1, day, 18, 0, 0));
+  };
+
+  // Initialize selectedDate with clinic timezone date
+  const getClinicDate = () => {
+    const estDateStr = getClinicDateString();
+    return estDateStringToDate(estDateStr);
+  };
+
+  const [selectedDate, setSelectedDate] = useState(getClinicDate());
 
   useEffect(() => {
     loadDoctors();
@@ -65,22 +88,89 @@ function DoctorsList() {
 
   async function loadDoctorsSchedules() {
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Get date string in clinic timezone (America/New_York) to avoid date offset
+      const dateStr = selectedDate.toLocaleDateString('en-CA', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }); // Returns YYYY-MM-DD format
+      
       const schedules = await Promise.all(
         doctors.map(async (doctor) => {
           try {
             const data = await apiClient(
               `/api/doctors/${doctor.id}/availability?date=${dateStr}`
             );
+            
+            // Filter available slots
+            const availableSlots = data.slots.filter((slot) => slot.available);
+            
             return {
               ...doctor,
-              availableSlots: data.slots.filter((slot) => slot.available),
+              availableSlots: availableSlots,
             };
           } catch (err) {
             return { ...doctor, availableSlots: [] };
           }
         })
       );
+      
+      // Check if we have any available slots at all
+      const totalAvailableSlots = schedules.reduce(
+        (sum, doctor) => sum + (doctor.availableSlots?.length || 0),
+        0
+      );
+      
+      // After loading all schedules, check if any slots are for a different date
+      // Find the earliest slot date across all doctors
+      let earliestSlotDateStr = null;
+      for (const doctor of schedules) {
+        if (doctor.availableSlots && doctor.availableSlots.length > 0) {
+          const firstSlot = doctor.availableSlots[0];
+          const slotStart = new Date(firstSlot.start);
+          const slotDateStr = slotStart.toLocaleDateString('en-CA', {
+            timeZone: 'America/New_York',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          });
+          
+          if (!earliestSlotDateStr || slotDateStr < earliestSlotDateStr) {
+            earliestSlotDateStr = slotDateStr;
+          }
+        }
+      }
+      
+      // If no slots available for the requested date, automatically move to next day
+      if (totalAvailableSlots === 0 && !earliestSlotDateStr) {
+        // Check if the requested date is today
+        const todayStr = getClinicDateString();
+        if (dateStr === todayStr) {
+          // Move to tomorrow
+          const [year, month, day] = dateStr.split('-').map(Number);
+          const nextDate = new Date(Date.UTC(year, month - 1, day + 1, 18, 0, 0));
+          const nextDateStr = nextDate.toLocaleDateString('en-CA', {
+            timeZone: 'America/New_York',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          });
+          const newSelectedDate = estDateStringToDate(nextDateStr);
+          setSelectedDate(newSelectedDate);
+          // Don't set schedules yet - let the useEffect trigger a reload with the new date
+          return;
+        }
+      }
+      
+      // If we found slots for a different date than requested, update selectedDate
+      if (earliestSlotDateStr && earliestSlotDateStr !== dateStr) {
+        const newSelectedDate = estDateStringToDate(earliestSlotDateStr);
+        setSelectedDate(newSelectedDate);
+        // Don't set schedules yet - let the useEffect trigger a reload with the new date
+        return;
+      }
+      
       setDoctorsWithSchedules(schedules);
     } catch (err) {
       console.error('Failed to load schedules:', err);
@@ -88,19 +178,51 @@ function DoctorsList() {
   }
 
   function handlePreviousDay() {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() - 1);
-    setSelectedDate(newDate);
+    // Get current date in clinic timezone, subtract one day
+    const currentDateStr = selectedDate.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const [year, month, day] = currentDateStr.split('-').map(Number);
+    // Create a date for the previous day using UTC to avoid timezone issues
+    const prevDate = new Date(Date.UTC(year, month - 1, day - 1, 18, 0, 0));
+    // Verify it's the correct date in EST
+    const prevDateStr = prevDate.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    setSelectedDate(estDateStringToDate(prevDateStr));
   }
 
   function handleNextDay() {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + 1);
-    setSelectedDate(newDate);
+    // Get current date in clinic timezone, add one day
+    const currentDateStr = selectedDate.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const [year, month, day] = currentDateStr.split('-').map(Number);
+    // Create a date for the next day using UTC to avoid timezone issues
+    const nextDate = new Date(Date.UTC(year, month - 1, day + 1, 18, 0, 0));
+    // Verify it's the correct date in EST
+    const nextDateStr = nextDate.toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    setSelectedDate(estDateStringToDate(nextDateStr));
   }
 
   function formatDate(date) {
+    // Use clinic timezone for consistent date display
     return date.toLocaleDateString('en-US', {
+      timeZone: 'America/New_York',
       weekday: 'long',
       month: 'long',
       day: 'numeric',
