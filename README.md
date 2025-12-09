@@ -191,7 +191,9 @@ npm run preview
 
 ### Usability Study Report
 
-📄 **Usability Study Report** is available in the `submission/` folder: [`submission/Usability Study Report_Shaobo(Ben).pdf`](submission/Usability%20Study%20Report_Shaobo(Ben).pdf)
+📄 **Usability Study Report** is available in multiple formats:
+- **PDF version:** [`submission/Usability Study Report_Shaobo(Ben).pdf`](submission/Usability%20Study%20Report_Shaobo(Ben).pdf)
+- **Google Docs version:** [View on Google Docs](https://docs.google.com/document/d/1i397FBZkzx0OdnH4hhsAmbU8mIGq0irSAAcicBmsX-U/edit?usp=sharing)
 
 *This report contains detailed usability testing findings and recommendations for the MedLink application.*
 
