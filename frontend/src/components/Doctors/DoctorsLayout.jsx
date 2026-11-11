@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
+import Icon from '../Shared/Icon';
+import { getInitials } from './initials';
 import './DoctorsLayout.css';
 
 function DoctorsLayout({ children }) {
@@ -214,7 +216,7 @@ function DoctorsLayout({ children }) {
       // Arrow keys in content: delegate to content's own navigation (NOT back to sidebar)
       if (
         (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') &&
-        isInContent
+        currentIsInContent
       ) {
         // Let content handle its own navigation
         return;
@@ -234,6 +236,9 @@ function DoctorsLayout({ children }) {
       {/* Brand name at top left */}
       <div className="doctor-brand">
         <Link to="/doctor/availability" className="brand-link">
+          <span className="brand-mark">
+            <Icon name="heartPulse" size={20} strokeWidth={2.2} />
+          </span>
           MedLink
         </Link>
       </div>
@@ -243,8 +248,13 @@ function DoctorsLayout({ children }) {
           ref={sidebarRef}
         >
           <div className="sidebar-welcome">
-            <div className="welcome-text">Welcome back</div>
-            <div className="user-name">{user?.name || 'User'}</div>
+            <span className="sidebar-avatar" aria-hidden="true">
+              {getInitials(user?.name) || <Icon name="user" size={20} />}
+            </span>
+            <div className="sidebar-welcome-text">
+              <div className="welcome-text">Welcome back</div>
+              <div className="user-name">{user?.name || 'User'}</div>
+            </div>
           </div>
           <nav className="sidebar-nav">
             <Link
@@ -290,6 +300,7 @@ function DoctorsLayout({ children }) {
                 }
               }}
             >
+              <Icon name="calendar" size={18} />
               Availability
             </Link>
             <Link
@@ -335,6 +346,7 @@ function DoctorsLayout({ children }) {
                 }
               }}
             >
+              <Icon name="calendarCheck" size={18} />
               Upcoming Appointments
             </Link>
             <Link
@@ -380,6 +392,7 @@ function DoctorsLayout({ children }) {
                 }
               }}
             >
+              <Icon name="fileText" size={18} />
               Past Appointments
             </Link>
             <button
@@ -425,6 +438,7 @@ function DoctorsLayout({ children }) {
                 }
               }}
             >
+              <Icon name="logOut" size={18} />
               Logout
             </button>
           </nav>
@@ -570,7 +584,7 @@ function LogoutConfirmModal({ onConfirm, onDismiss }) {
 
   return createPortal(
     <div
-      className="modal-overlay"
+      className="modal-overlay doctor-modal doctor-modal--danger"
       onClick={onDismiss}
       role="presentation"
       aria-hidden="false"

@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { apiClient } from '../../utils/apiClient';
+import Icon from '../Shared/Icon';
 import './AppointmentForm.css';
 
 function AppointmentForm() {
@@ -728,6 +729,7 @@ function AppointmentForm() {
                     }
                   }}
                 >
+                  <Icon name="clock" size={18} />
                   Select New Time Slot
                 </button>
               </div>
@@ -749,7 +751,7 @@ function AppointmentForm() {
                   }
                 />
                 <p className="time-hint">
-                  ⏰ 30-minute rule: Time will automatically round to the nearest hour or 30 minutes (e.g., 10:15 → 10:00, 10:45 → 11:00)
+                  <Icon name="clock" size={14} /> 30-minute rule: Time will automatically round to the nearest hour or 30 minutes (e.g., 10:15 → 10:00, 10:45 → 11:00)
                 </p>
               </div>
 
@@ -1047,7 +1049,7 @@ function TimeSlotModal({
           }}
           aria-label="Close time slot selection"
         >
-          ×
+          <Icon name="x" size={20} />
         </button>
         <h2 id="time-slot-modal-title" className="time-slot-modal-title">
           Select New Time Slot
@@ -1071,7 +1073,7 @@ function TimeSlotModal({
             className="time-slot-nav-button"
             aria-label="Previous day"
           >
-            ←
+            <Icon name="arrowLeft" size={20} />
           </button>
           <div className="time-slot-date-display">
             <button 
@@ -1119,7 +1121,7 @@ function TimeSlotModal({
             className="time-slot-nav-button"
             aria-label="Next day"
           >
-            →
+            <Icon name="arrowRight" size={20} />
           </button>
         </div>
 

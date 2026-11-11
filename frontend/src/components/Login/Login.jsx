@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
+import Icon from '../Shared/Icon';
 import backgroundImage from './images/Clinic_login.jpg';
 import './Login.css';
 
@@ -252,11 +253,20 @@ function Login() {
           }}
           aria-label="Back to home"
         >
-          ←
+          <Icon name="arrowLeft" size={18} />
         </button>
         <div className="login-header">
-          <h1 className="login-title">MedLink</h1>
-          <p className="login-subtitle">Your Health, Connected</p>
+          <span className="login-logo" aria-hidden="true">
+            <Icon name="heartPulse" size={24} strokeWidth={2.2} />
+          </span>
+          <h1 className="login-title">
+            {isRegister ? 'Create your account' : 'Welcome back'}
+          </h1>
+          <p className="login-subtitle">
+            {isRegister
+              ? 'Join MedLink to book and manage your visits.'
+              : 'Sign in to MedLink to manage your appointments.'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">

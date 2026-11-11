@@ -2,41 +2,60 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { apiClient } from '../../utils/apiClient';
+import { useAuth } from '../../context/AuthContext';
+import Icon from '../Shared/Icon';
 import './Home.css';
 
 const services = [
-  { id: 'primary', name: 'Primary Care', icon: '🏥' },
-  { id: 'urgent', name: 'Urgent Care', icon: '🚨' },
-  { id: 'covid', name: 'COVID Care', icon: '🦠' },
-  { id: 'cold-flu', name: 'Cold, Flu & COVID Testing', icon: '🤒' },
-  { id: 'workplace', name: 'Workplace Health', icon: '💼' },
-  { id: 'injury', name: 'Injury', icon: '🩹' },
+  { id: 'primary', name: 'Primary Care', icon: 'stethoscope' },
+  { id: 'urgent', name: 'Urgent Care', icon: 'siren' },
+  { id: 'covid', name: 'COVID Care', icon: 'shieldPlus' },
+  { id: 'cold-flu', name: 'Cold, Flu & COVID Testing', icon: 'thermometer' },
+  { id: 'workplace', name: 'Workplace Health', icon: 'briefcase' },
+  { id: 'injury', name: 'Injury', icon: 'bandage' },
 ];
 
-// Icon component with unified color
-function ServiceIcon({ iconType }) {
-  const icons = {
-    primary: '🏥',
-    urgent: '🚨',
-    covid: '🦠',
-    'cold-flu': '🤒',
-    workplace: '💼',
-    injury: '🩹',
-  };
+const onlineServices = [
+  {
+    icon: 'video',
+    title: 'Virtual consultations',
+    description: 'Meet with a provider by video from the comfort of home.',
+  },
+  {
+    icon: 'calendarCheck',
+    title: 'Online appointment booking',
+    description: 'See open time slots in real time and book instantly.',
+  },
+  {
+    icon: 'pill',
+    title: 'Prescription management',
+    description: 'Request refills and keep track of your medications.',
+  },
+  {
+    icon: 'fileText',
+    title: 'Medical record access',
+    description: 'Review your visit history and notes whenever you need.',
+  },
+  {
+    icon: 'message',
+    title: 'Secure messaging',
+    description: 'Ask your care team follow-up questions privately.',
+  },
+];
 
-  return (
-    <span className="reason-icon-wrapper">
-      <span className="reason-icon">{icons[iconType] || '🏥'}</span>
-    </span>
-  );
-}
-
-ServiceIcon.propTypes = {
-  iconType: PropTypes.string.isRequired,
-};
+const clinicInfo = [
+  {
+    icon: 'mapPin',
+    label: 'Address',
+    value: '123 Health Street, Medical District, City, State 12345',
+  },
+  { icon: 'phone', label: 'Contact', value: '(555) 123-4567' },
+  { icon: 'clock', label: 'Hours', value: 'Mon–Fri: 8AM–6PM · Sat: 9AM–2PM' },
+];
 
 function Home() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [specialties, setSpecialties] = useState([]);
@@ -310,72 +329,75 @@ function Home() {
 
   return (
     <div className="home-page">
-      {/* Banner Section - Top third of screen */}
-      <header className="banner-section" role="banner">
-        <div className="banner-image">
-          <div className="banner-overlay">
-            <h1 className="banner-title">MedLink</h1>
-            <p className="banner-tagline">Your Health, Connected</p>
+      <header className="hero" role="banner">
+        <div className="hero-glow hero-glow-1" aria-hidden="true" />
+        <div className="hero-glow hero-glow-2" aria-hidden="true" />
+        <div className="hero-inner">
+          <div className="hero-copy">
+            <span className="hero-eyebrow">
+              <Icon name="sparkles" size={16} />
+              Online booking now available
+            </span>
+            <h1 className="hero-title">
+              Care that fits <span className="hero-highlight">your schedule</span>
+            </h1>
+            <p className="hero-subtitle">
+              Find the right doctor, see real-time availability, and book a visit
+              at MedLink Clinic in under a minute.
+            </p>
+            <div className="hero-actions">
+              <button
+                type="button"
+                className="home-btn home-btn-primary"
+                onClick={handleSearchInputClick}
+              >
+                Find a doctor
+                <Icon name="arrowRight" size={18} />
+              </button>
+              <button
+                type="button"
+                className="home-btn home-btn-secondary"
+                onClick={() =>
+                  navigate(
+                    !user
+                      ? '/login'
+                      : user.role === 'doctor'
+                        ? '/doctor/availability'
+                        : '/patient/dashboard'
+                  )
+                }
+              >
+                {user ? 'Go to my dashboard' : 'Sign in to manage visits'}
+              </button>
+            </div>
+            <ul className="hero-trust">
+              <li>
+                <Icon name="shieldCheck" size={18} />
+                Secure &amp; private
+              </li>
+              <li>
+                <Icon name="calendarCheck" size={18} />
+                No double-booking
+              </li>
+              <li>
+                <Icon name="clock" size={18} />
+                Real-time availability
+              </li>
+            </ul>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content Section */}
-      <main className="main-content-wrapper" role="main">
-        <div className="content-container">
-          {/* Left Side - Clinic Information (5.5 units) */}
-          <div className="clinic-info-section">
-            <div className="clinic-header">
-              <h2>MedLink Clinic</h2>
-            </div>
-            <div className="clinic-details">
-              <div className="info-item">
-                <span className="info-label">📍 Address:</span>
-                <span className="info-value">
-                  123 Health Street, Medical District, City, State 12345
-                </span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">📞 Contact:</span>
-                <span className="info-value">(555) 123-4567</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">⏰ Hours:</span>
-                <span className="info-value">Mon-Fri: 8AM-6PM, Sat: 9AM-2PM</span>
-              </div>
-            </div>
-
-            <div className="online-services">
-              <h3>Online Services Available</h3>
-              <ul>
-                <li>Virtual consultations</li>
-                <li>Online appointment booking</li>
-                <li>Prescription management</li>
-                <li>Medical record access</li>
-                <li>Secure messaging with providers</li>
-              </ul>
-            </div>
-
-            <div className="clinic-tagline">
-              <p>
-                Quality healthcare services tailored to your needs. Book your
-                appointment today and experience compassionate, professional
-                medical care.
-              </p>
-            </div>
-          </div>
-
-          {/* Right Side - Fixed Booking Box (3.5 units) */}
           <div className="booking-box-container">
             <div className="booking-box">
-              <h3 className="booking-title">Book an Appointment</h3>
+              <h2 className="booking-title">Book an appointment</h2>
+              <p className="booking-subtitle">What brings you in today?</p>
               <form onSubmit={handleSearch} className="booking-search-form">
                 <div className="search-input-wrapper" onClick={handleSearchInputClick}>
+                  <Icon name="search" size={18} className="search-leading-icon" />
                   <input
                     type="text"
                     id="home-search-input"
                     name="home-search"
-                    placeholder="Search for doctors or specialties..."
+                    placeholder="Search doctors or specialties..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="search-input"
@@ -401,12 +423,13 @@ function Home() {
                     }}
                     tabIndex={0}
                   >
-                    🔍
+                    Search
                   </button>
                 </div>
               </form>
 
               <div className="common-reasons">
+                <p className="reasons-label">Common reasons for a visit</p>
                 <div className="reasons-list">
                   {services.map((service) => (
                     <button
@@ -421,7 +444,9 @@ function Home() {
                       }}
                       tabIndex={0}
                     >
-                      <ServiceIcon iconType={service.id} />
+                      <span className="reason-icon-wrapper">
+                        <Icon name={service.icon} size={18} />
+                      </span>
                       <span className="reason-name">{service.name}</span>
                     </button>
                   ))}
@@ -430,9 +455,63 @@ function Home() {
             </div>
           </div>
         </div>
+      </header>
+
+      <main className="home-main" role="main">
+        <section className="home-section" aria-labelledby="services-heading">
+          <div className="section-header">
+            <span className="section-eyebrow">Online services</span>
+            <h2 id="services-heading">Everything you need, in one place</h2>
+            <p>
+              Quality healthcare services tailored to your needs. Book your
+              appointment today and experience compassionate, professional
+              medical care.
+            </p>
+          </div>
+          <div className="feature-grid">
+            {onlineServices.map((service) => (
+              <div key={service.title} className="feature-card">
+                <span className="feature-icon">
+                  <Icon name={service.icon} size={22} />
+                </span>
+                <h3>{service.title}</h3>
+                <p>{service.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="home-section" aria-labelledby="clinic-heading">
+          <div className="clinic-card">
+            <div className="clinic-card-copy">
+              <span className="section-eyebrow section-eyebrow-light">Visit us</span>
+              <h2 id="clinic-heading">MedLink Clinic</h2>
+              <p>
+                In-person and virtual care from a team that puts you first.
+              </p>
+            </div>
+            <div className="clinic-info-grid">
+              {clinicInfo.map((item) => (
+                <div key={item.label} className="clinic-info-item">
+                  <span className="clinic-info-icon">
+                    <Icon name={item.icon} size={20} />
+                  </span>
+                  <div>
+                    <div className="clinic-info-label">{item.label}</div>
+                    <div className="clinic-info-value">{item.value}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </main>
-        
-        {/* Search Modal */}
+
+      <footer className="home-footer">
+        © {new Date().getFullYear()} MedLink Clinic · Your Health, Connected
+      </footer>
+
+      {/* Search Modal */}
       {showModal && (
         <SearchModal
           onClose={() => {
@@ -562,7 +641,7 @@ function SearchModal({
           aria-label="Close search modal"
           ref={firstFocusableRef}
         >
-          ×
+          <Icon name="x" size={20} />
         </button>
         <h2 id="modal-title" className="modal-title">
           What brings you in?
@@ -609,7 +688,7 @@ function SearchModal({
               )}
             </div>
             <button type="submit" className="modal-search-button" aria-label="Search">
-              🔍
+              <Icon name="search" size={20} />
             </button>
           </div>
         </form>

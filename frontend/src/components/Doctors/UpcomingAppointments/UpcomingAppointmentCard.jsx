@@ -1,17 +1,13 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect, useRef } from 'react';
+import Icon from '../../Shared/Icon';
+import { getInitials } from '../initials';
+import { getDateParts } from '../../../utils/dateDisplay';
 import './UpcomingAppointmentCard.css';
 
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+function durationMinutes(start, end) {
+  if (!end) return 30;
+  return Math.max(0, Math.round((new Date(end) - new Date(start)) / 60000));
 }
 
 export default function UpcomingAppointmentCard({
@@ -264,19 +260,30 @@ export default function UpcomingAppointmentCard({
     <div className="upcoming-appointment-card">
       {cancelConfirm && type !== 'current' && <ConfirmCancellationModal />}
       {cancelConfirm && type === 'current' && <NoShowConfirmationModal />}
-      <div className="appointment-card">
-        <div className="appointment-header">
-          <h3>{appointment.patientName}</h3>
-          <span className="status-badge status-upcoming">Upcoming</span>
+      <div className={`appointment-card ${type === 'current' ? 'appointment-card-current' : ''}`}>
+        <div className="agenda-time">
+          <span className="agenda-time-start">
+            {getDateParts(appointment.startDateTime).time}
+          </span>
+          <span className="agenda-time-duration">
+            {durationMinutes(appointment.startDateTime, appointment.endDateTime)} min
+          </span>
         </div>
-        <div className="appointment-details">
-          <p className="appointment-date">
-            {formatDate(appointment.startDateTime)}
-          </p>
+        <span className="dash-avatar" aria-hidden="true">
+          {getInitials(appointment.patientName) || <Icon name="user" size={18} />}
+        </span>
+        <div className="agenda-main">
+          <h3>{appointment.patientName}</h3>
           {appointment.reason && (
-            <p className="appointment-reason">{appointment.reason}</p>
+            <p className="appointment-reason">
+              <Icon name="fileText" size={15} />
+              {appointment.reason}
+            </p>
           )}
         </div>
+        <span className={`status-badge ${type === 'current' ? 'status-live' : 'status-upcoming'}`}>
+          {type === 'current' ? 'In progress' : 'Upcoming'}
+        </span>
         <div
           className={`appointment-actions ${type === 'current' ? 'no-show-actions' : ''}`}
         >
@@ -308,6 +315,7 @@ UpcomingAppointmentCard.propTypes = {
   appointment: PropTypes.shape({
     patientName: PropTypes.string.isRequired,
     startDateTime: PropTypes.string.isRequired,
+    endDateTime: PropTypes.string,
     reason: PropTypes.string,
   }).isRequired,
   onCancel: PropTypes.func.isRequired,

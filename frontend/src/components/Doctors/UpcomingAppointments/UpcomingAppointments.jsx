@@ -1,10 +1,42 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { apiClient } from '../../../utils/apiClient';
+import { useAuth } from '../../../context/AuthContext';
+import {
+  daysFromToday,
+  getDateParts,
+  greetingForNow,
+  relativeDayLabel,
+  todayLabel,
+} from '../../../utils/dateDisplay';
+import '../../Shared/Dashboard.css';
 import './UpcomingAppointments.css';
 import UpcomingAppointmentCard from './UpcomingAppointmentCard';
+import Icon from '../../Shared/Icon';
+
+function groupByDay(appointments) {
+  const groups = [];
+  for (const appointment of appointments) {
+    const parts = getDateParts(appointment.startDateTime);
+    const key = parts.fullDate;
+    let group = groups[groups.length - 1];
+    if (!group || group.key !== key) {
+      const diff = daysFromToday(appointment.startDateTime);
+      group = {
+        key,
+        label: diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : parts.weekdayLong,
+        date: `${parts.month} ${parts.day}`,
+        items: [],
+      };
+      groups.push(group);
+    }
+    group.items.push(appointment);
+  }
+  return groups;
+}
 
 export default function UpcomingAppointments() {
+  const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [allAppointments, setAllAppointments] = useState([]);
   const [currentAppointment, setCurrentAppointment] = useState({});
@@ -182,9 +214,89 @@ export default function UpcomingAppointments() {
     };
   }, [appointments, currentAppointment]);
 
+  const groupedAppointments = useMemo(() => groupByDay(appointments), [appointments]);
+
+  const stats = useMemo(() => {
+    const days = allAppointments.map((apt) => daysFromToday(apt.startDateTime));
+    return {
+      today: days.filter((d) => d === 0).length,
+      week: days.filter((d) => d >= 0 && d < 7).length,
+      total: allAppointments.length,
+      next: allAppointments[0],
+    };
+  }, [allAppointments]);
+
   return (
     <div className="upcoming-appointments">
         {error && <div className="error-message" role="alert">{error}</div>}
+
+        <section className="dash-hero">
+          <div className="dash-hero-copy">
+            <div className="dash-hero-date">
+              <Icon name="calendar" size={15} />
+              {todayLabel()}
+            </div>
+            <h1 className="dash-hero-title">
+              {greetingForNow()}, {user?.name || 'Doctor'}
+            </h1>
+            <p className="dash-hero-subtitle">
+              {stats.today > 0
+                ? `You have ${stats.today} ${stats.today === 1 ? 'patient' : 'patients'} scheduled today.`
+                : stats.week > 0
+                  ? `No patients today. ${stats.week} ${stats.week === 1 ? 'visit' : 'visits'} in the next 7 days.`
+                  : 'Your schedule is clear for the next 7 days.'}
+            </p>
+          </div>
+        </section>
+
+        <div className="dash-stats">
+          <div className="dash-stat">
+            <span className="dash-stat-icon">
+              <Icon name="calendarCheck" size={22} />
+            </span>
+            <div className="dash-stat-body">
+              <div className="dash-stat-label">Today</div>
+              <div className="dash-stat-value">{stats.today}</div>
+              <div className="dash-stat-hint">Appointments</div>
+            </div>
+          </div>
+          <div className="dash-stat">
+            <span className="dash-stat-icon tone-info">
+              <Icon name="calendar" size={22} />
+            </span>
+            <div className="dash-stat-body">
+              <div className="dash-stat-label">Next 7 days</div>
+              <div className="dash-stat-value">{stats.week}</div>
+              <div className="dash-stat-hint">Appointments</div>
+            </div>
+          </div>
+          <div className="dash-stat">
+            <span className="dash-stat-icon tone-violet">
+              <Icon name="user" size={22} />
+            </span>
+            <div className="dash-stat-body">
+              <div className="dash-stat-label">Next patient</div>
+              <div className="dash-stat-value dash-stat-value-text">
+                {stats.next?.patientName || '–'}
+              </div>
+              <div className="dash-stat-hint">
+                {stats.next
+                  ? `${relativeDayLabel(stats.next.startDateTime)} · ${getDateParts(stats.next.startDateTime).time}`
+                  : 'Nothing scheduled'}
+              </div>
+            </div>
+          </div>
+          <div className="dash-stat">
+            <span className="dash-stat-icon tone-warning">
+              <Icon name="clock" size={22} />
+            </span>
+            <div className="dash-stat-body">
+              <div className="dash-stat-label">All upcoming</div>
+              <div className="dash-stat-value">{stats.total}</div>
+              <div className="dash-stat-hint">Scheduled visits</div>
+            </div>
+          </div>
+        </div>
         
         {Object.keys(currentAppointment).length > 0 && (
           <div className="upcoming-section">
@@ -277,6 +389,9 @@ export default function UpcomingAppointments() {
             <div className="loading">Loading appointments...</div>
           ) : appointments.length === 0 ? (
             <div className="empty-state">
+              <span className="empty-state-icon">
+                <Icon name="calendarCheck" size={26} />
+              </span>
               <p>
                 {dateFilter === 'all'
                   ? "You don't have any upcoming appointments."
@@ -284,16 +399,29 @@ export default function UpcomingAppointments() {
               </p>
             </div>
           ) : (
-            <div className="appointments-grid">
-              {appointments.map((appointment) => (
-                <div key={appointment._id} tabIndex={0}>
-                  <UpcomingAppointmentCard
-                    type="upcoming"
-                    appointment={appointment}
-                    onCancel={() => {
-                      cancelAppointment(appointment._id);
-                    }}
-                  />
+            <div className="agenda">
+              {groupedAppointments.map((group) => (
+                <div key={group.key} className="agenda-day">
+                  <div className="agenda-day-head">
+                    <span className="agenda-day-label">{group.label}</span>
+                    <span className="agenda-day-date">{group.date}</span>
+                    <span className="agenda-day-count">
+                      {group.items.length} {group.items.length === 1 ? 'appointment' : 'appointments'}
+                    </span>
+                  </div>
+                  <div className="appointments-grid">
+                    {group.items.map((appointment) => (
+                      <div key={appointment._id} tabIndex={0}>
+                        <UpcomingAppointmentCard
+                          type="upcoming"
+                          appointment={appointment}
+                          onCancel={() => {
+                            cancelAppointment(appointment._id);
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import './DoctorAvailibility.css';
 import AvailibilityCard from './AvailibilityCard';
+import Icon from '../../Shared/Icon';
 import { apiClient } from '../../../utils/apiClient';
 
 const DAYS = [
@@ -183,12 +184,18 @@ export default function DoctorAvailibility() {
         <div className="info-container">
           <h1>Set Your Availability</h1>
           <p className="availability-description">
-            Click on time slots to select your available hours. Selected slots will be highlighted in green.
-            <br />
-            <strong>Time slots:</strong> 9:00 AM - 5:00 PM (30-minute intervals)
-            <br />
-            <em>Scroll horizontally to view all days (Monday - Sunday)</em>
+            Click on time slots to select your available hours. Selected slots are highlighted.
           </p>
+          <div className="availability-hints">
+            <span className="availability-hint">
+              <Icon name="clock" size={16} />
+              9:00 AM - 5:00 PM (30-minute intervals)
+            </span>
+            <span className="availability-hint">
+              <Icon name="arrowRight" size={16} />
+              Scroll horizontally to view all days (Monday - Sunday)
+            </span>
+          </div>
         </div>
 
         <div className="availability-cards-container">
@@ -290,7 +297,7 @@ function SaveConfirmModal({ onConfirm, onDismiss }) {
 
   return createPortal(
     <div
-      className="modal-overlay"
+      className="modal-overlay doctor-modal"
       onClick={onDismiss}
       role="presentation"
       aria-hidden="false"

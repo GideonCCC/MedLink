@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../utils/apiClient';
+import Icon from '../Shared/Icon';
+import { getInitials } from './initials';
 import './DoctorsList.css';
 
 const serviceMap = {
@@ -333,7 +335,12 @@ function DoctorsList() {
     <div className="doctors-list-page">
       {/* Top Header with Brand and Close */}
       <header className="doctors-page-header" role="banner">
-        <h1 className="page-brand">MedLink</h1>
+        <h1 className="page-brand">
+          <span className="page-brand-mark">
+            <Icon name="heartPulse" size={20} strokeWidth={2.2} />
+          </span>
+          MedLink
+        </h1>
         <button 
           onClick={() => navigate('/')} 
           tabIndex={0}
@@ -344,13 +351,21 @@ function DoctorsList() {
             }
           }}
           className="close-button"
+          aria-label="Close"
         >
-          ×
+          <Icon name="x" size={20} />
         </button>
       </header>
 
       <main className="doctors-page-container" role="main">
-        <h2 className="page-title">Book an Appointment</h2>
+        <div className="page-heading">
+          <h2 className="page-title">Book an Appointment</h2>
+          <p className="page-subtitle">
+            {searchParams.get('specialty')
+              ? <>Showing <span className="page-subtitle-pill">{searchParams.get('specialty')}</span> doctors with open slots</>
+              : 'Pick a day, then choose a time that works for you.'}
+          </p>
+        </div>
 
         {/* Date Navigation */}
         <div className="date-navigation-bar">
@@ -367,9 +382,10 @@ function DoctorsList() {
             disabled={!canGoPrevious}
             aria-label="Previous day"
           >
-            ←
+            <Icon name="arrowLeft" size={18} />
           </button>
           <div className="date-display-bar">
+            <Icon name="calendar" size={18} />
             {formatDate(selectedDate)}
           </div>
           <button
@@ -384,7 +400,7 @@ function DoctorsList() {
             className="date-nav-button"
             aria-label="Next day"
           >
-            →
+            <Icon name="arrowRight" size={18} />
           </button>
         </div>
 
@@ -394,6 +410,9 @@ function DoctorsList() {
           <div className="loading">Loading doctors...</div>
         ) : doctorsWithSchedules.length === 0 ? (
           <div className="empty-state">
+            <span className="empty-state-icon">
+              <Icon name="search" size={26} />
+            </span>
             <p>
               {searchParams.get('name')
                 ? `No doctors found matching "${searchParams.get('name')}".`
@@ -411,12 +430,19 @@ function DoctorsList() {
           if (doctorsWithSlots.length === 0) {
             return (
               <div className="empty-state">
+                <span className="empty-state-icon">
+                  <Icon name="calendar" size={26} />
+                </span>
                 <p>No slots available for this day.</p>
               </div>
             );
           }
           
           return (
+            <>
+            <p className="results-count">
+              {doctorsWithSlots.length} {doctorsWithSlots.length === 1 ? 'doctor' : 'doctors'} available
+            </p>
             <div className="doctors-schedule-list">
               {doctorsWithSlots.map((doctor) => (
                 <DoctorScheduleCard
@@ -426,6 +452,7 @@ function DoctorsList() {
                 />
               ))}
             </div>
+            </>
           );
         })()}
       </main>
@@ -437,12 +464,15 @@ function DoctorScheduleCard({ doctor, onSlotClick }) {
   return (
     <div className="doctor-schedule-card">
       <div className="doctor-profile">
-        <div className="doctor-avatar-large">
-          <DoctorAvatar />
+        <div className="doctor-avatar-large" aria-hidden="true">
+          {getInitials(doctor.name) || <Icon name="user" size={24} />}
         </div>
         <div className="doctor-details">
           <h3 className="doctor-name-card">{doctor.name}</h3>
-          <p className="doctor-specialty-card">{doctor.specialty || 'General Practice'}</p>
+          <p className="doctor-specialty-card">
+            <Icon name="stethoscope" size={14} />
+            {doctor.specialty || 'General Practice'}
+          </p>
         </div>
       </div>
       <div className="doctor-time-slots">
@@ -672,25 +702,6 @@ function DoctorScheduleCard({ doctor, onSlotClick }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function DoctorAvatar() {
-  return (
-    <svg
-      width="100%"
-      height="100%"
-      viewBox="0 0 100 100"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle cx="50" cy="50" r="50" style={{ fill: 'var(--color-primary-light)' }} />
-      <circle cx="50" cy="35" r="15" style={{ fill: 'var(--color-success)' }} />
-      <path
-        d="M20 85 C20 65, 35 55, 50 55 C65 55, 80 65, 80 85"
-        style={{ fill: 'var(--color-success)' }}
-      />
-    </svg>
   );
 }
 

@@ -3,16 +3,29 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { apiClient } from '../../utils/apiClient';
+import { useAuth } from '../../context/AuthContext';
+import {
+  getDateParts,
+  greetingForNow,
+  relativeDayLabel,
+  todayLabel,
+} from '../../utils/dateDisplay';
+import Icon from '../Shared/Icon';
+import '../Shared/Dashboard.css';
 import './PatientDashboard.css';
 
 function PatientDashboard() {
+  const { user } = useAuth();
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [upcomingTotal, setUpcomingTotal] = useState(0);
+  const [completedTotal, setCompletedTotal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [cancelConfirm, setCancelConfirm] = useState(null);
 
   useEffect(() => {
     loadUpcomingAppointments();
+    loadCompletedTotal();
   }, []);
 
   // Arrow key and Enter key navigation for keyboard accessibility
@@ -110,10 +123,20 @@ function PatientDashboard() {
         `/api/appointments?status=upcoming&from=${now}&page=1&limit=5`
       );
       setUpcomingAppointments(data.appointments);
+      setUpcomingTotal(data.pagination?.total ?? data.appointments.length);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadCompletedTotal() {
+    try {
+      const data = await apiClient('/api/appointments?status=completed&page=1&limit=1');
+      setCompletedTotal(data.pagination?.total ?? 0);
+    } catch (err) {
+      setCompletedTotal(null);
     }
   }
 
@@ -141,12 +164,76 @@ function PatientDashboard() {
     }
   }
 
+  const firstName = user?.name?.split(' ')[0] || 'there';
+  const nextAppointment = upcomingAppointments[0];
+  const laterAppointments = upcomingAppointments.slice(1);
+
   return (
     <div className="patient-dashboard">
       {error && <div className="error-banner">{error}</div>}
 
-      <div className="dashboard-header-section">
-        <h2>Upcoming Appointments</h2>
+      <section className="dash-hero">
+        <div className="dash-hero-copy">
+          <div className="dash-hero-date">
+            <Icon name="calendar" size={15} />
+            {todayLabel()}
+          </div>
+          <h2 className="dash-hero-title">
+            {greetingForNow()}, {firstName}
+          </h2>
+          <p className="dash-hero-subtitle">
+            {loading
+              ? 'Loading your schedule...'
+              : nextAppointment
+                ? `Your next visit is ${relativeDayLabel(nextAppointment.startDateTime).toLowerCase()} with ${nextAppointment.doctorName}.`
+                : 'You have no upcoming visits. Book one in under a minute.'}
+          </p>
+        </div>
+        <Link to="/patient/book-visit" className="dash-hero-action">
+          <Icon name="calendarCheck" size={18} />
+          Book a visit
+        </Link>
+      </section>
+
+      <div className="dash-stats">
+        <div className="dash-stat">
+          <span className="dash-stat-icon">
+            <Icon name="calendar" size={22} />
+          </span>
+          <div className="dash-stat-body">
+            <div className="dash-stat-label">Upcoming</div>
+            <div className="dash-stat-value">{loading ? '–' : upcomingTotal}</div>
+            <div className="dash-stat-hint">
+              {upcomingTotal === 1 ? 'Scheduled visit' : 'Scheduled visits'}
+            </div>
+          </div>
+        </div>
+        <div className="dash-stat">
+          <span className="dash-stat-icon tone-info">
+            <Icon name="clock" size={22} />
+          </span>
+          <div className="dash-stat-body">
+            <div className="dash-stat-label">Next visit</div>
+            <div className="dash-stat-value dash-stat-value-text">
+              {nextAppointment ? relativeDayLabel(nextAppointment.startDateTime) : '–'}
+            </div>
+            <div className="dash-stat-hint">
+              {nextAppointment
+                ? `${getDateParts(nextAppointment.startDateTime).weekday}, ${getDateParts(nextAppointment.startDateTime).time}`
+                : 'Nothing scheduled'}
+            </div>
+          </div>
+        </div>
+        <div className="dash-stat">
+          <span className="dash-stat-icon tone-violet">
+            <Icon name="shieldCheck" size={22} />
+          </span>
+          <div className="dash-stat-body">
+            <div className="dash-stat-label">Completed</div>
+            <div className="dash-stat-value">{completedTotal ?? '–'}</div>
+            <div className="dash-stat-hint">Past visits</div>
+          </div>
+        </div>
       </div>
 
       <div className="upcoming-section">
@@ -154,6 +241,9 @@ function PatientDashboard() {
           <div className="loading">Loading appointments...</div>
         ) : upcomingAppointments.length === 0 ? (
           <div className="empty-state">
+            <span className="empty-state-icon">
+              <Icon name="calendarCheck" size={28} />
+            </span>
             <p>You don&apos;t have any upcoming appointments.</p>
             <Link 
               to="/patient/book-visit" 
@@ -170,15 +260,39 @@ function PatientDashboard() {
             </Link>
           </div>
         ) : (
-          <div className="appointments-grid">
-            {upcomingAppointments.map((apt) => (
-              <AppointmentCard
-                key={apt.id}
-                appointment={apt}
-                onCancel={handleCancelClick}
-              />
-            ))}
-          </div>
+          <>
+            <div className="dash-section-head">
+              <h3 className="dash-section-title">Next appointment</h3>
+            </div>
+            <AppointmentCard
+              featured
+              appointment={nextAppointment}
+              onCancel={handleCancelClick}
+            />
+
+            {laterAppointments.length > 0 && (
+              <>
+                <div className="dash-section-head later-head">
+                  <h3 className="dash-section-title">Coming up later</h3>
+                  {upcomingTotal > upcomingAppointments.length && (
+                    <Link to="/patient/history" className="dash-section-link">
+                      View all {upcomingTotal}
+                      <Icon name="arrowRight" size={15} />
+                    </Link>
+                  )}
+                </div>
+                <div className="appointments-list">
+                  {laterAppointments.map((apt) => (
+                    <AppointmentCard
+                      key={apt.id}
+                      appointment={apt}
+                      onCancel={handleCancelClick}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
         )}
       </div>
 
@@ -192,39 +306,47 @@ function PatientDashboard() {
   );
 }
 
-function AppointmentCard({ appointment, onCancel }) {
-  function formatDate(dateString) {
-    const date = new Date(dateString);
-    // Use clinic timezone (America/New_York) for consistent date display
-    return date.toLocaleDateString('en-US', {
-      timeZone: 'America/New_York',
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  }
+function AppointmentCard({ appointment, onCancel, featured = false }) {
+  const parts = getDateParts(appointment.startDateTime);
 
   return (
-    <div className="appointment-card">
-      <div className="appointment-header">
-        <h3>{appointment.doctorName}</h3>
-        <span className="status-badge status-upcoming">
-          {appointment.status}
-        </span>
+    <div className={`appointment-card ${featured ? 'appointment-card-featured' : 'appointment-card-row'}`}>
+      <div className="dash-date-tile" aria-hidden="true">
+        <span className="dash-date-tile-month">{parts.month}</span>
+        <span className="dash-date-tile-day">{parts.day}</span>
+        <span className="dash-date-tile-weekday">{parts.weekday}</span>
       </div>
-      <div className="appointment-details">
-        <p className="appointment-date">
-          {formatDate(appointment.startDateTime)}
-        </p>
-        {appointment.reason && (
-          <p className="appointment-reason">{appointment.reason}</p>
-        )}
-        {appointment.doctorSpecialty && (
-          <p className="appointment-specialty">{appointment.doctorSpecialty}</p>
-        )}
+      <div className="appointment-main">
+        <div className="appointment-header">
+          <div className="appointment-doctor">
+            {featured && (
+              <span className="appointment-doctor-icon">
+                <Icon name="stethoscope" size={20} />
+              </span>
+            )}
+            <div>
+              <h3>{appointment.doctorName}</h3>
+              {appointment.doctorSpecialty && (
+                <p className="appointment-specialty">{appointment.doctorSpecialty}</p>
+              )}
+            </div>
+          </div>
+          <span className="dash-chip">{relativeDayLabel(appointment.startDateTime)}</span>
+        </div>
+        <div className="appointment-details">
+          <p className="appointment-date">
+            <Icon name="clock" size={16} />
+            <span>
+              {parts.fullDate} · {parts.time}
+            </span>
+          </p>
+          {appointment.reason && (
+            <p className="appointment-reason">
+              <Icon name="fileText" size={16} />
+              <span>{appointment.reason}</span>
+            </p>
+          )}
+        </div>
       </div>
       <div className="appointment-actions">
         <Link
@@ -300,6 +422,7 @@ AppointmentCard.propTypes = {
     status: PropTypes.string.isRequired,
   }).isRequired,
   onCancel: PropTypes.func.isRequired,
+  featured: PropTypes.bool,
 };
 
 function CancelConfirmModal({ onConfirm, onDismiss }) {
