@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { apiClient } from '../../utils/apiClient';
+import Icon from '../Shared/Icon';
 import './BookVisitStart.css';
 
 const services = [
@@ -25,17 +26,17 @@ const serviceMap = {
 
 function ServiceIcon({ iconType }) {
   const icons = {
-    primary: '🏥',
-    urgent: '🚨',
-    covid: '🦠',
-    'cold-flu': '🤒',
-    workplace: '💼',
-    injury: '🩹',
+    primary: 'stethoscope',
+    urgent: 'siren',
+    covid: 'shieldPlus',
+    'cold-flu': 'thermometer',
+    workplace: 'briefcase',
+    injury: 'bandage',
   };
 
   return (
-    <span className="reason-icon-wrapper">
-      <span className="reason-icon">{icons[iconType] || '🏥'}</span>
+    <span className={`reason-icon-wrapper reason-icon-${iconType}`}>
+      <Icon name={icons[iconType] || 'stethoscope'} size={22} className="reason-icon" />
     </span>
   );
 }
@@ -194,7 +195,7 @@ function BookVisitStart() {
               readOnly
             />
             <button type="button" className="search-icon-button" aria-label="Search">
-              🔍
+              <Icon name="search" size={20} />
             </button>
           </div>
         </div>
@@ -215,6 +216,7 @@ function BookVisitStart() {
               >
                 <ServiceIcon iconType={service.id} />
                 <span className="reason-name">{service.name}</span>
+                <Icon name="arrowRight" size={18} className="reason-arrow" />
               </button>
             ))}
           </div>
@@ -339,7 +341,7 @@ function SearchModal({
             }
           }}
         >
-          ×
+          <Icon name="x" size={20} />
         </button>
         <h2 id="modal-title" className="modal-title">
           What brings you in?
@@ -358,7 +360,7 @@ function SearchModal({
               autoFocus
             />
             <button type="submit" className="modal-search-button" aria-label="Search" tabIndex={0}>
-              🔍
+              <Icon name="search" size={20} />
             </button>
           </div>
         </form>
@@ -736,7 +738,7 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
             }
           }}
         >
-          ×
+          <Icon name="x" size={20} />
         </button>
         <h2 id="doctors-modal-title" className="doctors-modal-title">
           Book an Appointment
@@ -756,7 +758,7 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
             disabled={!canGoPrevious}
             aria-label="Previous day"
           >
-            ←
+            <Icon name="arrowLeft" size={20} />
           </button>
           <div className="date-display-bar">
             {formatDate(selectedDate)}
@@ -772,7 +774,7 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
             className="date-nav-button"
             aria-label="Next day"
           >
-            →
+            <Icon name="arrowRight" size={20} />
           </button>
         </div>
 

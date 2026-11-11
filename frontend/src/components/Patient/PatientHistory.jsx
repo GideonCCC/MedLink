@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { apiClient } from '../../utils/apiClient';
+import Icon from '../Shared/Icon';
 import './PatientHistory.css';
 
 function PatientHistory() {
@@ -235,6 +236,9 @@ function PatientHistory() {
           <div className="loading">Loading appointments...</div>
         ) : appointments.length === 0 ? (
           <div className="empty-state">
+            <span className="empty-state-icon">
+              <Icon name="search" size={26} />
+            </span>
             <p>No appointments found matching your filters.</p>
           </div>
         ) : (
@@ -316,11 +320,16 @@ function HistoryItem({ appointment }) {
   return (
     <div className="history-item">
       <div className="history-item-header">
-        <div>
-          <h2>{appointment.doctorName}</h2>
-          {appointment.doctorSpecialty && (
-            <p className="specialty">{appointment.doctorSpecialty}</p>
-          )}
+        <div className="history-item-doctor">
+          <span className="history-item-icon">
+            <Icon name="stethoscope" size={20} />
+          </span>
+          <div>
+            <h2>{appointment.doctorName}</h2>
+            {appointment.doctorSpecialty && (
+              <p className="specialty">{appointment.doctorSpecialty}</p>
+            )}
+          </div>
         </div>
         <span className={`status-badge ${getStatusClass(appointment.status)}`}>
           {appointment.status}
@@ -328,8 +337,16 @@ function HistoryItem({ appointment }) {
       </div>
 
       <div className="history-item-details">
-        <p className="date-time">{formatDate(appointment.startDateTime)}</p>
-        {appointment.reason && <p className="reason">{appointment.reason}</p>}
+        <p className="date-time">
+          <Icon name="calendar" size={16} />
+          <span>{formatDate(appointment.startDateTime)}</span>
+        </p>
+        {appointment.reason && (
+          <p className="reason">
+            <Icon name="fileText" size={16} />
+            <span>{appointment.reason}</span>
+          </p>
+        )}
       </div>
 
     </div>

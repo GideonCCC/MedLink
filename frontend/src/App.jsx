@@ -82,7 +82,7 @@ function App() {
                     <Routes>
                       <Route
                         path=""
-                        element={<Navigate to="availability" replace />}
+                        element={<Navigate to="upcoming-appointments" replace />}
                       />
                       <Route
                         path="availability"

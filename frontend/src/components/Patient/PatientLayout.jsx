@@ -3,7 +3,18 @@ import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
+import Icon from '../Shared/Icon';
 import './PatientLayout.css';
+
+function getInitials(name) {
+  if (!name) return '';
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('');
+}
 
 function PatientLayout({ children }) {
   const { user, logout } = useAuth();
@@ -202,6 +213,7 @@ function PatientLayout({ children }) {
         const isInput = currentElement.tagName === 'INPUT' || currentElement.tagName === 'SELECT' || currentElement.tagName === 'TEXTAREA';
         
         if (isInput) {
+          const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
           const allFocusableElements = Array.from(
             contentRef.current?.querySelectorAll(focusableSelectors) || []
           ).filter(el => {
@@ -267,20 +279,27 @@ function PatientLayout({ children }) {
 
   return (
     <div className="patient-layout">
-      <div className="patient-brand">
-        <Link to="/patient/dashboard" className="brand-link">
-          MedLink
-        </Link>
-      </div>
-
       <div className="patient-layout-body">
         <aside 
           className="patient-sidebar" 
           ref={sidebarRef}
         >
+          <div className="patient-brand">
+            <Link to="/patient/dashboard" className="brand-link">
+              <span className="brand-mark">
+                <Icon name="heartPulse" size={20} strokeWidth={2} />
+              </span>
+              <span className="brand-name">MedLink</span>
+            </Link>
+          </div>
           <div className="sidebar-welcome">
-            <div className="welcome-text">Welcome back,</div>
-            <div className="user-name">{user?.name || 'User'}</div>
+            <span className="sidebar-avatar">
+              {getInitials(user?.name) || <Icon name="user" size={20} />}
+            </span>
+            <div className="sidebar-welcome-text">
+              <div className="welcome-text">Welcome back,</div>
+              <div className="user-name">{user?.name || 'User'}</div>
+            </div>
           </div>
           <nav className="sidebar-nav">
             <Link
@@ -326,7 +345,8 @@ function PatientLayout({ children }) {
                 }
               }}
             >
-              Dashboard
+              <Icon name="heartPulse" size={18} />
+              <span>Dashboard</span>
             </Link>
             <Link
               to="/patient/book-visit"
@@ -371,7 +391,8 @@ function PatientLayout({ children }) {
                 }
               }}
             >
-              Book Visit
+              <Icon name="calendar" size={18} />
+              <span>Book Visit</span>
             </Link>
             <Link
               to="/patient/history"
@@ -416,7 +437,8 @@ function PatientLayout({ children }) {
                 }
               }}
             >
-              Visit History
+              <Icon name="fileText" size={18} />
+              <span>Visit History</span>
             </Link>
             <button 
               onClick={handleLogoutClick} 
@@ -461,7 +483,8 @@ function PatientLayout({ children }) {
                 }
               }}
             >
-              Logout
+              <Icon name="logOut" size={18} />
+              <span>Logout</span>
             </button>
           </nav>
         </aside>

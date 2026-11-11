@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../../../utils/apiClient';
 import PropTypes from 'prop-types';
+import Icon from '../../Shared/Icon';
 import './PastAppointments.css';
 
 export default function PastAppointments() {
@@ -131,6 +132,7 @@ export default function PastAppointments() {
       <div className="info-container">
         <h1>Past Appointments</h1>
         <div className="search-container">
+          <Icon name="search" size={18} className="search-icon" />
           <input
             type="text"
             id="past-appointments-search-input"
@@ -149,6 +151,9 @@ export default function PastAppointments() {
           <div className="loading">Loading appointments...</div>
         ) : appointments.length === 0 ? (
           <div className="empty-state">
+            <span className="empty-state-icon">
+              <Icon name="fileText" size={26} />
+            </span>
             <p>
               {searchQuery
                 ? `No appointments found matching "${searchQuery}".`
@@ -201,10 +206,14 @@ function PastAppointmentCard({ appointment }) {
       </div>
       <div className="appointment-details">
         <p className="appointment-date">
+          <Icon name="calendar" size={16} />
           {formatDate(appointment.startDateTime)}
         </p>
         {appointment.reason && (
-          <p className="appointment-reason">{appointment.reason}</p>
+          <p className="appointment-reason">
+            <Icon name="fileText" size={16} />
+            {appointment.reason}
+          </p>
         )}
       </div>
     </div>

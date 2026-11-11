@@ -1,252 +1,388 @@
+/* Doctor area shell: brand + sidebar on the left, content on the right */
 .main-layout {
+  --doctor-brand-height: 72px;
+  --doctor-sidebar-width: 272px;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--color-background-light);
+  display: grid;
+  grid-template-columns: var(--doctor-sidebar-width) minmax(0, 1fr);
+  grid-template-rows: var(--doctor-brand-height) 1fr;
+}
+
+.main-layout .doctor-layout {
+  display: contents;
+}
+
+.main-layout .doctor-brand {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  padding: 0 1.5rem;
+  background: var(--color-background);
+  border-right: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 3;
 }
 
-.doctor-layout {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 0 1.5rem 2rem;
-  flex: 1;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto 2rem;
+.main-layout .brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
 }
 
-.doctor-brand {
-  padding: 1rem 1.5rem;
+.main-layout .brand-link:hover {
+  color: var(--color-primary-dark);
 }
 
-.doctor-menu-bar {
-  flex: 0 0 300px;
-  background: #ffffff;
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+.main-layout .brand-link:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+}
+
+.main-layout .brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.main-layout .doctor-menu-bar {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  position: sticky;
+  top: var(--doctor-brand-height);
+  height: calc(100vh - var(--doctor-brand-height));
+  overflow-y: auto;
+  background: var(--color-background);
+  border-right: 1px solid var(--color-border);
+  padding: 1rem 1rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  position: sticky;
-  top: 1.5rem;
 }
 
-.doctor-content {
-  flex: 1;
-  background: #ffffff;
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-  padding: 1.75rem 1.5rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  min-height: 0;
+.main-layout .doctor-content {
+  grid-column: 2;
+  grid-row: 1 / span 2;
   min-width: 0;
+  width: 100%;
+  max-width: 1120px;
+  padding: 2.25rem 2.5rem 3rem;
   overflow-x: hidden;
-  overflow-y: visible;
 }
 
-.brand-link {
-  font-size: 1.5rem;
+/* Welcome block */
+.doctor-menu-bar .sidebar-welcome {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+}
+
+.doctor-menu-bar .sidebar-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-100);
+  color: var(--color-primary-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-heading);
   font-weight: 700;
-  color: #007a63;
-  text-decoration: none;
+  font-size: 0.9rem;
+  flex-shrink: 0;
 }
 
-.brand-link:hover {
-  color: #006b54;
+.doctor-menu-bar .sidebar-welcome-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
 }
 
-.sidebar-welcome {
+.doctor-menu-bar .welcome-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+}
+
+.doctor-menu-bar .user-name {
+  font-family: var(--font-family-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Navigation */
+.doctor-menu-bar .sidebar-nav {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.welcome-text {
-  font-size: 1rem;
-  font-weight: 400;
-  color: #666;
-}
-
-.user-name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.sidebar-nav {
+.doctor-menu-bar .sidebar-nav-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.sidebar-nav-item {
-  padding: 1rem 1.25rem;
-  font-size: 1rem;
-  color: #666;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.875rem;
+  font-size: 0.925rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
   text-decoration: none;
-  border-radius: 10px;
-  transition: all 0.2s;
+  border-radius: var(--radius-md);
   border: none;
   background: none;
   text-align: left;
   cursor: pointer;
   font-family: inherit;
+  width: 100%;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
-.sidebar-nav-item:hover {
-  background: #f0f0f0;
-  color: #333;
+.doctor-menu-bar .sidebar-nav-item .icon {
+  flex-shrink: 0;
+  color: var(--color-text-light);
+  transition: color var(--transition-fast);
 }
 
-.sidebar-nav-item.active {
-  background: #007a63;
-  color: #fff;
+.doctor-menu-bar .sidebar-nav-item:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
 }
 
-.sidebar-nav-item.active:hover {
-  background: #006b54;
+.doctor-menu-bar .sidebar-nav-item:hover .icon {
+  color: var(--color-text-secondary);
 }
 
-.sidebar-nav-item:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+.doctor-menu-bar .sidebar-nav-item.active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
-.sidebar-logout {
+.doctor-menu-bar .sidebar-nav-item.active .icon {
+  color: var(--color-primary);
+}
+
+.doctor-menu-bar .sidebar-nav-item:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.doctor-menu-bar .sidebar-logout {
   margin-top: auto;
-  color: #c33;
+  color: var(--color-danger);
 }
 
-.sidebar-logout:hover {
-  background: #fee;
-  color: #a00;
+.doctor-menu-bar .sidebar-logout .icon {
+  color: var(--color-danger);
+}
+
+.doctor-menu-bar .sidebar-logout:hover {
+  background: var(--color-danger-light);
+  color: var(--color-danger-hover);
+}
+
+.doctor-menu-bar .sidebar-logout:hover .icon {
+  color: var(--color-danger-hover);
 }
 
 @media (max-width: 900px) {
-  .doctor-layout {
-    flex-direction: column;
+  .main-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
   }
 
-  .doctor-menu-bar {
+  .main-layout .doctor-brand {
+    grid-column: 1;
+    grid-row: 1;
+    height: 64px;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .main-layout .doctor-menu-bar {
+    grid-column: 1;
+    grid-row: 2;
     position: static;
-    top: auto;
-    width: 100%;
+    height: auto;
+    overflow: visible;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .doctor-menu-bar .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0.25rem;
+  }
+
+  .doctor-menu-bar .sidebar-nav-item {
+    width: auto;
+    white-space: nowrap;
+    padding: 0.55rem 0.8rem;
+  }
+
+  .doctor-menu-bar .sidebar-logout {
+    margin-top: 0;
+    margin-left: auto;
+  }
+
+  .main-layout .doctor-content {
+    grid-column: 1;
+    grid-row: 3;
+    max-width: none;
+    padding: 1.5rem 1.25rem 2.5rem;
   }
 }
 
 @media (max-width: 640px) {
-  .doctor-layout {
-    padding: 0 1rem 1.5rem;
+  .doctor-menu-bar .sidebar-welcome {
+    display: none;
   }
 
-  .doctor-menu-bar {
-    padding: 1.25rem 1rem;
-  }
-
-  .doctor-content {
-    padding: 1.25rem;
+  .main-layout .doctor-content {
+    padding: 1.25rem 1rem 2rem;
   }
 }
 
-/* Logout Confirmation Modal */
-.modal-overlay {
+/* Shared Doctor-area modals (portaled to body, so scoped by .doctor-modal) */
+.doctor-modal.modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
   z-index: 99999;
   pointer-events: auto;
 }
 
-.modal-content {
-  background: white;
-  border-radius: 12px;
+.doctor-modal .modal-content {
+  background: var(--color-background);
+  border-radius: var(--radius-xl);
   padding: 2rem;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 440px;
+  width: 100%;
+  box-shadow: var(--shadow-xl);
   z-index: 100000;
   position: relative;
   pointer-events: auto;
 }
 
-.modal-content h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 1rem 0;
+.doctor-modal .modal-content:focus {
+  outline: none;
 }
 
-.modal-content p {
-  color: #666;
-  margin: 0 0 2rem 0;
-  line-height: 1.5;
+.doctor-modal .modal-content h3 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
 }
 
-.modal-actions {
+.doctor-modal .modal-content p {
+  color: var(--color-text-secondary);
+  margin: 0 0 1.75rem 0;
+  line-height: 1.6;
+}
+
+.doctor-modal .modal-actions {
   display: flex;
-  gap: 0.5rem;
-  justify-content: space-between;
+  gap: 0.75rem;
+  justify-content: flex-end;
 }
 
-.modal-cancel-button {
-  padding: 0.875rem 1.5rem;
-  background: white;
-  color: #666;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s;
+.doctor-modal .modal-cancel-button,
+.doctor-modal .modal-confirm-button {
   flex: 1;
-}
-
-.modal-cancel-button:hover {
-  background: #f5f5f5;
-  border-color: #ccc;
-}
-
-.modal-cancel-button:focus,
-.modal-cancel-button:focus-visible {
-  outline: 3px solid #007a63;
-  outline-offset: 2px;
-  background: #f0f0f0;
-  border-color: #007a63;
-}
-
-.modal-confirm-button {
-  padding: 0.875rem 1.5rem;
-  background: #c33;
-  color: white;
-  border: 2px solid #c33;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.95rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.925rem;
   cursor: pointer;
-  transition: all 0.2s;
-  flex: 1;
+  box-shadow: var(--shadow-xs);
+  transition: background-color var(--transition-fast), color var(--transition-fast),
+    border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.modal-confirm-button:hover {
-  background: #a00;
-  border-color: #a00;
+.doctor-modal .modal-cancel-button {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
 }
 
-.modal-confirm-button:focus,
-.modal-confirm-button:focus-visible {
-  outline: 3px solid #ffcc00;
-  outline-offset: 2px;
-  background: #d44;
-  border-color: #ffcc00;
-  box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.3);
+.doctor-modal .modal-cancel-button:hover {
+  background: var(--color-surface-muted);
+}
+
+.doctor-modal .modal-confirm-button {
+  background: var(--color-primary);
+  color: #fff;
+  border: 1px solid var(--color-primary);
+}
+
+.doctor-modal .modal-confirm-button:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.doctor-modal .modal-cancel-button:focus,
+.doctor-modal .modal-confirm-button:focus {
+  outline: none;
+}
+
+.doctor-modal .modal-cancel-button:focus-visible,
+.doctor-modal .modal-confirm-button:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--ring);
+}
+
+.doctor-modal--danger .modal-confirm-button {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.doctor-modal--danger .modal-confirm-button:hover {
+  background: var(--color-danger-hover);
+  border-color: var(--color-danger-hover);
+}
+
+.doctor-modal--danger .modal-confirm-button:focus-visible {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.2);
 }

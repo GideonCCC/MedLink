@@ -1,8 +1,13 @@
 import React, { useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
+import Icon from './Icon';
 import './Navbar.css';
+
+function navLinkClass({ isActive }) {
+  return isActive ? 'navbar-link active' : 'navbar-link';
+}
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -17,6 +22,9 @@ function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-brand">
+          <span className="navbar-logo">
+            <Icon name="heartPulse" size={20} strokeWidth={2.2} />
+          </span>
           MedLink
         </Link>
         <div className="navbar-menu">
@@ -24,34 +32,39 @@ function Navbar() {
             <>
               {user.role === 'patient' && (
                 <>
-                  <Link to="/patient/dashboard" className="navbar-link">
+                  <NavLink to="/patient/dashboard" className={navLinkClass}>
                     Dashboard
-                  </Link>
-                  <Link to="/patient/appointments/new" className="navbar-link">
+                  </NavLink>
+                  <NavLink to="/patient/appointments/new" className={navLinkClass}>
                     Book Appointment
-                  </Link>
-                  <Link to="/patient/history" className="navbar-link">
+                  </NavLink>
+                  <NavLink to="/patient/history" className={navLinkClass}>
                     History
-                  </Link>
+                  </NavLink>
                 </>
               )}
               {user.role === 'doctor' && (
                 <>
-                  <Link to="/doctor/availability" className="navbar-link">
-                    Availability
-                  </Link>
-                  <Link
+                  <NavLink
                     to="/doctor/upcoming-appointments"
-                    className="navbar-link"
+                    className={navLinkClass}
                   >
-                    Upcoming Appointments
-                  </Link>
-                  <Link to="/doctor/past-appointments" className="navbar-link">
+                    Dashboard
+                  </NavLink>
+                  <NavLink to="/doctor/availability" className={navLinkClass}>
+                    Availability
+                  </NavLink>
+                  <NavLink to="/doctor/past-appointments" className={navLinkClass}>
                     Past Appointments
-                  </Link>
+                  </NavLink>
                 </>
               )}
-              <span className="navbar-user">Hello, {user.name}</span>
+              <span className="navbar-user">
+                <span className="navbar-avatar" aria-hidden="true">
+                  {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                </span>
+                Hello, {user.name}
+              </span>
               <button onClick={handleLogout} className="navbar-logout">
                 Logout
               </button>
