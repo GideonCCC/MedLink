@@ -235,7 +235,7 @@ function DoctorsLayout({ children }) {
     <div className="main-layout">
       {/* Brand name at top left */}
       <div className="doctor-brand">
-        <Link to="/doctor/availability" className="brand-link">
+        <Link to="/doctor/upcoming-appointments" className="brand-link">
           <span className="brand-mark">
             <Icon name="heartPulse" size={20} strokeWidth={2.2} />
           </span>
@@ -257,6 +257,52 @@ function DoctorsLayout({ children }) {
             </div>
           </div>
           <nav className="sidebar-nav">
+            <Link
+              to="/doctor/upcoming-appointments"
+              className={`sidebar-nav-item ${isActive('/doctor/upcoming-appointments') ? 'active' : ''}`}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  e.stopImmediatePropagation(); // Stop all other listeners FIRST
+                  e.stopPropagation();
+                  
+                  const navItems = Array.from(
+                    sidebarRef.current?.querySelectorAll('.sidebar-nav-item') || []
+                  ).filter(el => {
+                    return el.offsetParent !== null && 
+                           !el.disabled && 
+                           !el.hasAttribute('aria-hidden') &&
+                           window.getComputedStyle(el).visibility !== 'hidden';
+                  });
+
+                  // Use e.currentTarget (the Link/button itself) instead of e.target
+                  const currentItem = e.currentTarget;
+                  const currentIndex = navItems.indexOf(currentItem);
+                  
+                  if (currentIndex === -1) {
+                    // If not found, focus first or last
+                    if (e.key === 'ArrowDown') {
+                      navItems[0]?.focus();
+                    } else if (e.key === 'ArrowUp') {
+                      navItems[navItems.length - 1]?.focus();
+                    }
+                    return;
+                  }
+
+                  if (e.key === 'ArrowDown') {
+                    const nextIndex = currentIndex < navItems.length - 1 ? currentIndex + 1 : 0;
+                    navItems[nextIndex]?.focus();
+                  } else if (e.key === 'ArrowUp') {
+                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : navItems.length - 1;
+                    navItems[prevIndex]?.focus();
+                  }
+                }
+              }}
+            >
+              <Icon name="calendarCheck" size={18} />
+              Dashboard
+            </Link>
             <Link
               to="/doctor/availability"
               className={`sidebar-nav-item ${isActive('/doctor/availability') ? 'active' : ''}`}
@@ -302,52 +348,6 @@ function DoctorsLayout({ children }) {
             >
               <Icon name="calendar" size={18} />
               Availability
-            </Link>
-            <Link
-              to="/doctor/upcoming-appointments"
-              className={`sidebar-nav-item ${isActive('/doctor/upcoming-appointments') ? 'active' : ''}`}
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                  e.preventDefault();
-                  e.stopImmediatePropagation(); // Stop all other listeners FIRST
-                  e.stopPropagation();
-                  
-                  const navItems = Array.from(
-                    sidebarRef.current?.querySelectorAll('.sidebar-nav-item') || []
-                  ).filter(el => {
-                    return el.offsetParent !== null && 
-                           !el.disabled && 
-                           !el.hasAttribute('aria-hidden') &&
-                           window.getComputedStyle(el).visibility !== 'hidden';
-                  });
-
-                  // Use e.currentTarget (the Link/button itself) instead of e.target
-                  const currentItem = e.currentTarget;
-                  const currentIndex = navItems.indexOf(currentItem);
-                  
-                  if (currentIndex === -1) {
-                    // If not found, focus first or last
-                    if (e.key === 'ArrowDown') {
-                      navItems[0]?.focus();
-                    } else if (e.key === 'ArrowUp') {
-                      navItems[navItems.length - 1]?.focus();
-                    }
-                    return;
-                  }
-
-                  if (e.key === 'ArrowDown') {
-                    const nextIndex = currentIndex < navItems.length - 1 ? currentIndex + 1 : 0;
-                    navItems[nextIndex]?.focus();
-                  } else if (e.key === 'ArrowUp') {
-                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : navItems.length - 1;
-                    navItems[prevIndex]?.focus();
-                  }
-                }
-              }}
-            >
-              <Icon name="calendarCheck" size={18} />
-              Upcoming Appointments
             </Link>
             <Link
               to="/doctor/past-appointments"

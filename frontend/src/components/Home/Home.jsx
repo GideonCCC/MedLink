@@ -362,7 +362,7 @@ function Home() {
                     !user
                       ? '/login'
                       : user.role === 'doctor'
-                        ? '/doctor/availability'
+                        ? '/doctor/upcoming-appointments'
                         : '/patient/dashboard'
                   )
                 }

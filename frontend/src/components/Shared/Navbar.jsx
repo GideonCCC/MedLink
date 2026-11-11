@@ -45,14 +45,14 @@ function Navbar() {
               )}
               {user.role === 'doctor' && (
                 <>
-                  <NavLink to="/doctor/availability" className={navLinkClass}>
-                    Availability
-                  </NavLink>
                   <NavLink
                     to="/doctor/upcoming-appointments"
                     className={navLinkClass}
                   >
-                    Upcoming Appointments
+                    Dashboard
+                  </NavLink>
+                  <NavLink to="/doctor/availability" className={navLinkClass}>
+                    Availability
                   </NavLink>
                   <NavLink to="/doctor/past-appointments" className={navLinkClass}>
                     Past Appointments

@@ -32,7 +32,7 @@ function Login() {
       } else if (user.role === 'patient') {
         navigate('/patient/dashboard');
       } else if (user.role === 'doctor') {
-        navigate('/doctor/availability');
+        navigate('/doctor/upcoming-appointments');
       }
     }
   }, [user, navigate, location.state]);
